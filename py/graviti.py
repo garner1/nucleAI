@@ -250,7 +250,8 @@ def edge_diversity_parallel(node,neightbors,diversity,fdf):
     node_arr = fdf.iloc[[node]][['centroid_x','centroid_y']].to_numpy()
     nn_arr = fdf.iloc[neightbors][['centroid_x','centroid_y']].to_numpy()
     centroid = 0.5*(node_arr+nn_arr)
-    array = np.hstack((centroid,diversity.reshape((diversity.shape[0],1))))
+#    array = np.hstack((centroid,diversity.reshape((diversity.shape[0],1))))
+    array = np.hstack((centroid,diversity.reshape((diversity.shape[1],1))))
     edge.extend(array.tolist())
     return edge
 
@@ -261,9 +262,8 @@ def covd_gradient_parallel(node,descriptor,row_idx,col_idx,values):
     # if you consider graph weights in computing the diversity
     weights = values[mask]
     
-    # if you do not consider graph weights in computing the diversity
-    #gradient = sum(delta) 
-    return (node, col_idx[mask], np.multiply(delta,weights)[0])
+    #return (node, col_idx[mask], np.multiply(delta,weights)[0])
+    return (node, col_idx[mask], delta, weights)
 
 def covd_gradient(descriptor,row_idx,col_idx,values):
     global_gradient = []
@@ -366,11 +366,6 @@ def clusteringCoeff(A):
 def rescale(data):
     newdata = preprocessing.minmax_scale(data,feature_range=(-1, 1),axis=0) # rescale data so that each feature ranges in [0,1]
     return newdata
-
-def principalComp(data):
-    pca = PCA(n_components='mle')
-    pca.fit(data)
-    return pca
 
 def smoothing(W,data,radius):
     S = normalize(W, norm='l1', axis=1) #create the row-stochastic matrix

@@ -49,7 +49,7 @@ get_ipython().system('tar -xf $sample')
 dirname = os.path.dirname(sample) #get the sample directory
 if True:#not os.path.exists(os.path.join(dirname,'luad_polygon')): # if the polygon folder does not exist proceed
     get_ipython().system("mv './luad_polygon/' $dirname")
-    patchlist = glob.glob(dirname+'/*_polygon/*.svs/*.csv')[:4] #get the list of patches    
+    patchlist = glob.glob(dirname+'/*_polygon/*.svs/*.csv')[:] #get the list of patches    
 
     # Show the patches as png files
     #Parallel(n_jobs=num_cores)(delayed(show_patches_parallel)(filename) for filename in tqdm(patchlist) if ~pd.read_csv(filename).empty)

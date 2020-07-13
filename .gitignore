@@ -8,6 +8,7 @@
 *.txt
 *.tsv
 *.dat
+data/*
 *~
 __*
 test_*

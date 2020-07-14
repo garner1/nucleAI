@@ -1,9 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[ ]:
-
-
 import sys  
 sys.path.insert(0, '../py')
 from graviti import *
@@ -45,27 +42,11 @@ from sklearn.neighbors import KDTree
 from sklearn.neighbors import NearestNeighbors
 
 
-# In[ ]:
-
-
 size = int(sys.argv[1]) # number of nuclei to sample, use 0 value for full set
 nn = 10 # set the number of nearest neighbor in the umap-graph. Will be used in CovD as well
 
-
-# In[ ]:
-
-
-samples = glob.glob('../data/TCGA*.gz')    
-
-
-# In[ ]:
-
-
 # Get numb of cores
 num_cores = multiprocessing.cpu_count() # numb of cores
-
-
-# In[ ]:
 
 dirpath = sys.argv[2]
 sample = os.path.basename(dirpath).split(sep='.')[0]; print(sample)

@@ -188,7 +188,7 @@ def contourPlot(fdf,N,aggfunc,filename): # Contour visualization
 
     # define the pivot tabel for the contour plot
     table = pd.pivot_table(fdf, 
-                           values='diversity', 
+                           values='heterogeneity', 
                            index=['x_bin'],
                            columns=['y_bin'],
                            aggfunc=aggfunc, # take the mean or another function of the entries in the bin
@@ -247,10 +247,9 @@ def get_fov(df,row,col):
 
 def edge_diversity_parallel(node,neightbors,diversity,fdf):
     edge = []
-    node_arr = fdf.iloc[[node]][['centroid_x','centroid_y']].to_numpy()
-    nn_arr = fdf.iloc[neightbors][['centroid_x','centroid_y']].to_numpy()
+    node_arr = fdf.loc[node,['centroid_x','centroid_y']].to_numpy()
+    nn_arr = fdf.loc[neightbors,['centroid_x','centroid_y']].to_numpy()
     centroid = 0.5*(node_arr+nn_arr)
-#    array = np.hstack((centroid,diversity.reshape((diversity.shape[0],1))))
     array = np.hstack((centroid,diversity.reshape((diversity.shape[1],1))))
     edge.extend(array.tolist())
     return edge
@@ -260,9 +259,7 @@ def covd_gradient_parallel(node,descriptor,row_idx,col_idx,values):
     delta = norm(descriptor[node,:]-descriptor[col_idx[mask],:],axis=1) # broadcasting to get change at edges
     delta = np.reshape(delta,(1,delta.shape[0]))
     # if you consider graph weights in computing the diversity
-    weights = values[mask]
-    
-    #return (node, col_idx[mask], np.multiply(delta,weights)[0])
+    weights = values[mask]    
     return (node, col_idx[mask], delta, weights)
 
 def covd_gradient(descriptor,row_idx,col_idx,values):
@@ -289,11 +286,25 @@ def covd_parallel(node,data,row_idx,col_idx): # returns the vec of the logarithm
     return (node,vec)
 
 def covd_parallel_sparse(node,data,nn_idx):
-    C = np.cov(data[nn_idx[node,:],:],rowvar=False)
-    iu1 = np.triu_indices(C.shape[1])
-    vec = C[iu1]
-    return (node,vec)
+    mat = data[nn_idx[node,:],:]
+    C = np.cov(mat.astype(float),rowvar=False)
+    problematic_nodes_switch = 0
+    try:
+        L = linalg.logm(C)
+        Lr = np.real_if_close(L) # remove small imaginary parts
+        iu1 = np.triu_indices(Lr.shape[1])
+        vec = Lr[iu1]
+        return (node,vec,problematic_nodes_switch)
+    except Exception:
+        problematic_nodes_switch += 1
+        iu1 = np.triu_indices(C.shape[1])
+        vec = 0.0*C[iu1]
+        return (node,vec,problematic_nodes_switch)
+    #iu1 = np.triu_indices(C.shape[1])
+    #vec = C[iu1]
+    return (node,vec,problematic_nodes_switch)
 
+    
 def filtering_HE(df):
     #First removing columns
     filt_df = df[df.columns[7:]]

@@ -43,17 +43,19 @@ from sklearn.neighbors import NearestNeighbors
 
 
 size = int(sys.argv[1]) # number of nuclei to sample, use 0 value for full set
+dirpath = sys.argv[2]
+
 nn = 10 # set the number of nearest neighbor in the umap-graph. Will be used in CovD as well
 
-# Get numb of cores
 num_cores = multiprocessing.cpu_count() # numb of cores
 
-dirpath = sys.argv[2]
 sample = os.path.basename(dirpath).split(sep='.')[0]; print(sample)
 
 print('Loading the data')
 df = pd.DataFrame()
 fovs = glob.glob(dirpath+'/*_polygon/*.svs/*.pkl')
+
+print('There are '+str(len(fovs))+' FOVs')
 for fov in fovs: # for each fov
     data = pd.read_pickle(fov)
     df = df.append(data, ignore_index = True)
@@ -66,7 +68,7 @@ print(str(df.shape[0])+' nuclei')
     
 centroids = df.columns[:2];# print(centroids)
 
-if size == 0:
+if size == 0 or size > df.shape[0]:
     print('Considering all nuclei')
     fdf = df 
 else:
@@ -146,35 +148,35 @@ for idx in list(fdf.index):
 filename = dirpath+'/'+sample+'.size'+str(size)+'.graphNN'+str(nn)+'.covdNN'+str(n_neighbors)+'.nodeHI.pkl'
 fdf.to_pickle(filename)
 
-print('Generating the edge diversity index and its coordinates')
-edges_list = Parallel(n_jobs=num_cores)(
-     delayed(edge_diversity_parallel)(adj2fdf[node],[adj2fdf[nn] for nn in neightbors],diversity,fdf) 
-     for (node, neightbors, diversity, weights) in tqdm(node_nn_heterogeneity_weights) if adj2fdf[node] in nodes_with_covd
- )
-edge_list = [item for sublist in edges_list for item in sublist]
-edge_df = pd.DataFrame(edge_list, columns=["centroid_x", "centroid_y","heterogeneity"]) 
+# print('Generating the edge diversity index and its coordinates')
+# edges_list = Parallel(n_jobs=num_cores)(
+#      delayed(edge_diversity_parallel)(adj2fdf[node],[adj2fdf[nn] for nn in neightbors],diversity,fdf) 
+#      for (node, neightbors, diversity, weights) in tqdm(node_nn_heterogeneity_weights) if adj2fdf[node] in nodes_with_covd
+#  )
+# edge_list = [item for sublist in edges_list for item in sublist]
+# edge_df = pd.DataFrame(edge_list, columns=["centroid_x", "centroid_y","heterogeneity"]) 
     
-# store the edge diversity dataframe
-filename = dirpath+'/'+sample+'.size'+str(size)+'.graphNN'+str(nn)+'.covdNN'+str(n_neighbors)+'.edgeHI.pkl'
-edge_df.to_pickle(filename)
+# # store the edge diversity dataframe
+# filename = dirpath+'/'+sample+'.size'+str(size)+'.graphNN'+str(nn)+'.covdNN'+str(n_neighbors)+'.edgeHI.pkl'
+# edge_df.to_pickle(filename)
 
 #Show contour plot
 N = 100
 filename = dirpath+'/'+sample+'.size'+str(size)+'.graphNN'+str(nn)+'.covdNN'+str(n_neighbors)+'.contour.node.mean.png'
 contourPlot(fdf,N,np.mean,filename)
 
-#Show contour plot
-N = 100
-filename = dirpath+'/'+sample+'.size'+str(size)+'.graphNN'+str(nn)+'.covdNN'+str(n_neighbors)+'.contour.edge.mean.png'
-contourPlot(edge_df,N,np.mean,filename)
+# #Show contour plot
+# N = 100
+# filename = dirpath+'/'+sample+'.size'+str(size)+'.graphNN'+str(nn)+'.covdNN'+str(n_neighbors)+'.contour.edge.mean.png'
+# contourPlot(edge_df,N,np.mean,filename)
 
 #Show contour plot
 N = 100
 filename = dirpath+'/'+sample+'.size'+str(size)+'.graphNN'+str(nn)+'.covdNN'+str(n_neighbors)+'.contour.node.sum.png'
 contourPlot(fdf,N,np.sum,filename)
 
-#Show contour plot
-N = 100
-filename = dirpath+'/'+sample+'.size'+str(size)+'.graphNN'+str(nn)+'.covdNN'+str(n_neighbors)+'.contour.edge.sum.png'
-contourPlot(edge_df,N,np.sum,filename)
+# #Show contour plot
+# N = 100
+# filename = dirpath+'/'+sample+'.size'+str(size)+'.graphNN'+str(nn)+'.covdNN'+str(n_neighbors)+'.contour.edge.sum.png'
+# contourPlot(edge_df,N,np.sum,filename)
 

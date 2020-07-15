@@ -29,7 +29,7 @@ from skimage import io
 # Given the nonzero pixel values show the mask
 def show_patch_from_polygon(filename,x_list,y_list):
     if not (x_list and y_list):
-        print('There are no nuclei')
+        pass
     else:
         xx = np.array(x_list).reshape((len(x_list),1))
         yy = np.array(y_list).reshape((len(y_list),1))

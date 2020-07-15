@@ -33,14 +33,15 @@ def show_patch_from_polygon(filename,x_list,y_list):
     else:
         xx = np.array(x_list).reshape((len(x_list),1))
         yy = np.array(y_list).reshape((len(y_list),1))
+        
         arr = np.hstack((xx,yy))
-        arr -= np.mean(arr,axis=0).astype(int)
-        mini = np.min(arr,axis=0)
-        arr -= mini.astype(int) # subtract the min to translate the mask 
 
-        row = np.rint(arr[:,0]).astype(int)
-        col = np.rint(arr[:,1]).astype(int)
-        mtx = coo_matrix((np.ones(row.shape), (row, col)), dtype=bool)
+        # subtract the min to translate the mask 
+        mini = np.min(arr,axis=0); arr -= mini
+
+        rr = np.rint(arr[:,1]).astype(int) # xs are cols
+        cc = np.rint(arr[:,0]).astype(int) # ys are rows
+        mtx = coo_matrix((np.ones(rr.shape), (rr, cc)), dtype=bool)
 
         plt.figure(figsize=(40,40))
         io.imshow(mtx.todense(),cmap='gray')
@@ -53,74 +54,73 @@ def show_patches_parallel(filename):
     y_list = []
     df = pd.read_csv(filename)
     if ~df.empty:
-        cc0 = float(os.path.basename(filename).split(sep='_')[0])
-        rr0 = float(os.path.basename(filename).split(sep='_')[1] )
-
-        for cell in df['Polygon'].tolist()[:]: # loop over cells in patch
+        cell_list = df['Polygon'].tolist()
+        for cell in cell_list: # loop over cells in patch
             lista = list(np.fromstring(cell[1:-1], dtype=float, sep=':')) #list of vertices in polygon
             cc = lista[0::2] # list of x coord of each polygon vertex
             rr = lista[1::2] # list of y coord of each polygon verted
-            poly = np.asarray(list(zip(cc,rr)))
-            mean = poly.mean(axis=0) 
-            poly -= mean 
-            # create the nuclear mask
-            mask = np.zeros(tuple(np.ceil(np.max(poly,axis=0) - np.min(poly,axis=0)).astype(int))).astype(int) 
+            poly = np.asarray(list(zip(rr,cc)))
             mini = np.min(poly,axis=0)
             poly -= mini # subtract the min to translate the mask 
-            cc, rr = polygon(poly[:, 0], poly[:, 1], mask.shape) # get the nonzero mask locations
-            mask[cc, rr] = 1 # nonzero pixel entries
+            
+            # create the nuclear mask
+            mask = np.zeros(tuple(np.ceil(np.max(poly,axis=0) - np.min(poly,axis=0)).astype(int))) 
+            rr, cc = polygon(poly[:, 0], poly[:, 1], mask.shape) # get the nonzero mask locations
+            mask[rr, cc] = 1 # nonzero pixel entries
             # rescale back to original coordinates
             rr = rr.astype(float);cc = cc.astype(float)
             rr += mini[0]; cc += mini[1]
-            rr += mean[0]; cc += mean[1]
-            rr += rr0; cc += cc0
             
             # update the list of nonzero pixel entries
-            x_list.extend( [int(n) for n in list(rr)] ) 
-            y_list.extend( [int(n) for n in list(cc)] )
-            
+            x_list.extend( [int(n) for n in list(cc)] ) 
+            y_list.extend( [int(n) for n in list(rr)] )
         show_patch_from_polygon(filename,x_list,y_list)
     return
 
-# given the patch filename containing the polygon coordinates, generate morphometrics
 def measure_patch_of_polygons(filename,features): 
+    # given the patch filename containing the polygon coordinates, generate morphometrics
+    # Polygons are encoded in cartesian coord system (x,y) with the origin at the top-left corner
+    # the first 2 integers in the polygon filename give the (x,y) coord of the top-left corner of the patch
+    # remember that skimage and numpy use the array convention of (row,col) for coordinates
     data = pd.DataFrame(columns = features) # create empty df to store morphometrics
     df = pd.read_csv(filename)
-    if ~df.empty:
-        cc0 = float(os.path.basename(filename).split(sep='_')[0]) # the x position is the col position
-        rr0 = float(os.path.basename(filename).split(sep='_')[1] ) # the y position is the row position
-
-        for cell in df['Polygon'].tolist()[:]: # loop over cells in patch
-            lista = list(np.fromstring(cell[1:-1], dtype=float, sep=':')) #list of vertices in polygon
-            cc = lista[0::2] # list of x coord of each polygon vertex
-            rr = lista[1::2] # list of y coord of each polygon verted
-            poly = np.asarray(list(zip(cc,rr)))
-            mean = poly.mean(axis=0) 
-            poly -= mean 
-            # create the nuclear mask
-            mask = np.zeros(tuple(np.ceil(np.max(poly,axis=0) - np.min(poly,axis=0)).astype(int))).astype(int) # build an empty mask spanning the support of the polygon
-            mini = np.min(poly,axis=0)
-            poly -= mini # subtract the min to translate the mask 
-            cc, rr = polygon(poly[:, 0], poly[:, 1], mask.shape) # get the nonzero mask locations
-            mask[cc, rr] = 1 # nonzero pixel entries
-            label_mask = label(mask)
-            try:
-                regions = regionprops(label_mask, coordinates='rc')        
-            except ValueError:  #raised if array is empty.
-                pass
+    nuclei_list = df['Polygon'].tolist()
+    #print('There are '+str(len(nuclei_list))+' nuclei in this fov')
+    for cell in tqdm(nuclei_list): # loop over cells in patch
+        lista = list(np.fromstring(cell[1:-1], dtype=float, sep=':')) #list of vertices in polygon
+        cc = lista[0::2] # list of x coord of each polygon vertex are the columns of a numpy array
+        rr = lista[1::2] # list of y coord of each polygon verted are the rows of a numpy array
+        poly = np.asarray(list(zip(rr,cc)))
+        
+        # shift by the min
+        mini = np.min(poly,axis=0)
+        poly -= mini 
+        
+        # create the nuclear mask
+        mask = np.zeros(tuple(np.ceil(np.max(poly,axis=0) - np.min(poly,axis=0)).astype(int))) # build an empty mask spanning the support of the polygon
+        rr, cc = polygon(poly[:, 0], poly[:, 1], mask.shape) # get the nonzero mask locations
+        mask[rr, cc] = 1 # nonzero pixel entries
+        label_mask = label(mask)
+        
+        # calculate morphometrics
+        try:
+            regions = regionprops(label_mask, coordinates='rc')        
+        except ValueError:  #raised if array is empty.
+            pass
             
-            dicts = {}
-            keys = features
-            for i in keys:
-                if i == 'centroid_x':
-                    dicts[i] = regions[0]['centroid'][0]+cc0
-                elif i == 'centroid_y':
-                    dicts[i] = regions[0]['centroid'][1]+rr0
-                else:
-                    dicts[i] = regions[0][i]
-            # update morphometrics data 
-            new_df = pd.DataFrame(dicts, index=[0])
-            data = data.append(new_df, ignore_index=True)
+        dicts = {}
+        keys = features
+        for i in keys:
+            if i == 'centroid_x':
+                dicts[i] = np.rint(regions[0]['centroid'][1]+mini[1]).astype(int) # x-coord is column
+            elif i == 'centroid_y':
+                dicts[i] = np.rint(regions[0]['centroid'][0]+mini[0]).astype(int) # y-coord is row
+            else:
+                dicts[i] = regions[0][i]
+        
+        # update morphometrics data 
+        new_df = pd.DataFrame(dicts, index=[0])
+        data = data.append(new_df, ignore_index=True)
     data.to_pickle(filename+'.morphometrics.pkl')
     return 
 

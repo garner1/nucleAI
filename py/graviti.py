@@ -206,7 +206,7 @@ def contourPlot(fdf,N,aggfunc,filename): # Contour visualization
                      cmap=plt.cm.viridis);
     ax.invert_yaxis()
     cbar = fig.colorbar(cs)
-    plt.savefig('./'+filename+'.contour.png')
+    plt.savefig(filename+'.contour.png')
     plt.close()
     
 def get_fov(df,row,col):

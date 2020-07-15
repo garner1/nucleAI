@@ -86,7 +86,7 @@ def measure_patch_of_polygons(filename,features):
     df = pd.read_csv(filename)
     nuclei_list = df['Polygon'].tolist()
     #print('There are '+str(len(nuclei_list))+' nuclei in this fov')
-    for cell in tqdm(nuclei_list): # loop over cells in patch
+    for cell in nuclei_list: # loop over cells in patch
         lista = list(np.fromstring(cell[1:-1], dtype=float, sep=':')) #list of vertices in polygon
         cc = lista[0::2] # list of x coord of each polygon vertex are the columns of a numpy array
         rr = lista[1::2] # list of y coord of each polygon verted are the rows of a numpy array

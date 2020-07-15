@@ -17,7 +17,7 @@ import glob
 import pandas as pd
 import os
 from scipy.sparse import coo_matrix
-from skimage.measure import label, regionprops#, regionprops_table
+from skimage.measure import label, regionprops
 import math
 
 import timeit
@@ -42,21 +42,22 @@ features = ['centroid_x','centroid_y','area','eccentricity','orientation','perim
 num_cores = multiprocessing.cpu_count() # numb of cores
 
 #for sample in glob.glob(datadir+'/*.gz/*.gz'): # for each sample compressed file
-sample = sys.argv[1]
+sample = sys.argv[1] #~/Work/dataset/tcga_polygons/LUAD/*.gz/*.gz
 ID = os.path.basename(sample).split(sep='.')[0] #get sample ID
 print(ID)
-get_ipython().system('tar -xf $sample')
 dirname = os.path.dirname(sample) #get the sample directory
 print(dirname)
-if True:#not os.path.exists(os.path.join(dirname,'luad_polygon')): # if the polygon folder does not exist proceed
-    get_ipython().system("mv './luad_polygon/' $dirname")
-    patchlist = glob.glob(dirname+'/*_polygon/*.svs/*.csv')[:] #get the list of patches    
 
-    # Show the patches as png files
-    #Parallel(n_jobs=num_cores)(delayed(show_patches_parallel)(filename) for filename in tqdm(patchlist) if ~pd.read_csv(filename).empty)
+get_ipython().system('tar -xf $sample')
+get_ipython().system("mv './luad_polygon/' $dirname")
+patchlist = glob.glob(dirname+'/*_polygon/*.svs/*.csv') #get the list of patches    
+print('There are '+str(len(patchlist))+' patches')
+
+# Show the patches as png files
+#Parallel(n_jobs=num_cores)(delayed(show_patches_parallel)(filename) for filename in tqdm(patchlist) if ~pd.read_csv(filename).empty)
         
-    # Calculate the morphometrics of each patch as a pkl file
-    Parallel(n_jobs=num_cores)(
-            delayed(measure_patch_of_polygons)(filename,features) for filename in tqdm(patchlist[:]) if ~pd.read_csv(filename).empty
-        )
-
+print('Calculating the morphometry...')
+Parallel(n_jobs=num_cores)(
+    delayed(measure_patch_of_polygons)(filename,features) for filename in tqdm(patchlist) if ~pd.read_csv(filename).empty
+)
+print('Done!')

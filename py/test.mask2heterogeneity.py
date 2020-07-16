@@ -62,15 +62,9 @@ for fov in fovs: # for each fov
 
 df['area'] = df['area'].astype(float) # convert to float this field
 
-#df = df.head(n=200000) # hard-coded downsize for memory issues 
 numb_nuclei = df.shape[0] 
 print(str(numb_nuclei)+' nuclei')
 ssample =numb_nuclei//frequence     
-# if ssample == 0 or ssample > df.shape[0]:
-#     print('Considering all nuclei')
-#     ssample = 0
-#     fdf = df 
-# else:
 print('Downsampling '+str(ssample)+' nuclei')
 fdf = df.sample(n=ssample,random_state=1234) #!!!hard-coded random state 
 
@@ -129,17 +123,17 @@ row_idx, col_idx, values = find(A) #A.nonzero() # nonzero entries
 
 filename = dirpath+'/'+sample+'.nuclei'+str(numb_nuclei)+'.ssample'+str(ssample)+'.graphNN'+str(nn)+'.covdNN'+str(n_neighbors)+'.pairwise_heterogeneity.pkl'
 if not os.path.exists(filename):
-    print('Generating the node metrics')
+    print('Generating the nn metrics')
     node_nn_heterogeneity_weights = Parallel(n_jobs=num_cores)(
         delayed(covd_gradient_parallel)(fdf2adj[node],descriptor,row_idx,col_idx,values) 
         for node in tqdm(nodes_with_covd)
     )
     pickle.dump( node_nn_heterogeneity_weights, open( filename, "wb" ) )
 else:
-    print('Loading the node metrics')
+    print('Loading the nn metrics')
     node_nn_heterogeneity_weights = pickle.load( open( filename, "rb" ) )
     
-# define and store dataframe with pairwise diversities
+# define dataframe with pairwise diversities
 heterogeneity_df = pd.DataFrame(node_nn_heterogeneity_weights, columns =['node', 'nn', 'heterogeneity', 'weight']) 
 
 fdf['heterogeneity'] = np.nan # create a new feature in fdf

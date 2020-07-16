@@ -53,11 +53,11 @@ get_ipython().system("mv './luad_polygon/' $dirname")
 patchlist = glob.glob(dirname+'/*_polygon/*.svs/*.csv') #get the list of patches    
 print('There are '+str(len(patchlist))+' patches')
 
-print('Showing the patches as png files...')
-Parallel(n_jobs=num_cores)(delayed(show_patches_parallel)(filename) for filename in tqdm(patchlist) if ~pd.read_csv(filename).empty)
+# print('Showing the patches as png files...')
+# Parallel(n_jobs=num_cores)(delayed(show_patches_parallel)(filename) for filename in tqdm(patchlist) if ~pd.read_csv(filename).empty)
         
-# print('Calculating the morphometry...')
-# Parallel(n_jobs=num_cores)(
-#     delayed(measure_patch_of_polygons)(filename,features) for filename in tqdm(patchlist) if ~pd.read_csv(filename).empty
-# )
+print('Calculating the morphometry...')
+Parallel(n_jobs=num_cores)(
+    delayed(measure_patch_of_polygons)(filename,features) for filename in tqdm(patchlist) if ~pd.read_csv(filename).empty
+)
 print('Done!')

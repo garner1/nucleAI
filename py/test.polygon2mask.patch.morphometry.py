@@ -24,8 +24,5 @@ features = ['centroid_x','centroid_y','area','eccentricity','orientation','perim
 
 patch = sys.argv[1] #~/Work/dataset/tcga_polygons/LUAD/*.gz/*.gz
 
-# print('Showing the patches as png files...')
-show_patches_parallel(patch)
-        
 #print('Calculating the morphometry...')
 measure_patch_of_polygons(patch,features)

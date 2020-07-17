@@ -279,7 +279,7 @@ def covd_gradient(descriptor,row_idx,col_idx,values):
 def covd_parallel(node,data,row_idx,col_idx): # returns the vec of the logarithm of the cov matrix
     mask = row_idx == node         # find nearest neigthbors
     cluster = np.append(node,col_idx[mask]) # define the local cluster, its size depends on the local connectivity
-    C = np.cov(data[cluster,:],rowvar=False)
+    C = np.corrcoef(data[cluster,:],rowvar=False)
     L = linalg.logm(C) 
     iu1 = np.triu_indices(L.shape[1])
     vec = L[iu1]
@@ -287,7 +287,7 @@ def covd_parallel(node,data,row_idx,col_idx): # returns the vec of the logarithm
 
 def covd_parallel_sparse(node,data,nn_idx):
     mat = data[nn_idx[node,:],:]
-    C = np.cov(mat.astype(float),rowvar=False)
+    C = np.corrcoef(mat.astype(float),rowvar=False)
     problematic_nodes_switch = 0
     try:
         L = linalg.logm(C)
@@ -300,9 +300,7 @@ def covd_parallel_sparse(node,data,nn_idx):
         iu1 = np.triu_indices(C.shape[1])
         vec = 0.0*C[iu1]
         return (node,vec,problematic_nodes_switch)
-    #iu1 = np.triu_indices(C.shape[1])
-    #vec = C[iu1]
-    return (node,vec,problematic_nodes_switch)
+    #return (node,vec,problematic_nodes_switch)
 
     
 def filtering_HE(df):

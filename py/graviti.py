@@ -287,7 +287,9 @@ def covd_parallel(node,data,row_idx,col_idx): # returns the vec of the logarithm
 
 def covd_parallel_sparse(node,data,nn_idx):
     mat = data[nn_idx[node,:],:]
-    C = np.corrcoef(mat.astype(float),rowvar=False)
+    C = np.corrcoef(mat.astype(float),rowvar=False) # compute correlation matrix to account for std
+    gamma = 1.0e-08 # regularization parameter
+    C += gamma*np.identity(C.shape[0]) # diagonal loading to regularize the covariance matrix
     problematic_nodes_switch = 1
     centroid = data[node,:2]
     try:

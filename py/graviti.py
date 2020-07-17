@@ -288,19 +288,19 @@ def covd_parallel(node,data,row_idx,col_idx): # returns the vec of the logarithm
 def covd_parallel_sparse(node,data,nn_idx):
     mat = data[nn_idx[node,:],:]
     C = np.corrcoef(mat.astype(float),rowvar=False)
-    problematic_nodes_switch = 0
+    problematic_nodes_switch = 1
+    centroid = data[node,:2]
     try:
         L = linalg.logm(C)
         Lr = np.real_if_close(L) # remove small imaginary parts
         iu1 = np.triu_indices(Lr.shape[1])
         vec = Lr[iu1]
-        return (node,vec,problematic_nodes_switch)
+        return (node,vec,problematic_nodes_switch,centroid)
     except Exception:
-        problematic_nodes_switch += 1
+        problematic_nodes_switch -= 1
         iu1 = np.triu_indices(C.shape[1])
         vec = 0.0*C[iu1]
-        return (node,vec,problematic_nodes_switch)
-    #return (node,vec,problematic_nodes_switch)
+        return (node,vec,problematic_nodes_switch,centroid)
 
     
 def filtering_HE(df):

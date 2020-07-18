@@ -35,9 +35,9 @@ from sklearn.neighbors import NearestNeighbors
 
 frequency = int(sys.argv[1]) # how often to pick a nuclei as a seed = size of the covd sample nuclei
 dirpath = sys.argv[2] # the full path to the sample directory
-
 #frequency = 10 # how often to pick a nuclei as a seed = size of the covd sample nuclei
 #dirpath = '/home/garner1/Work/dataset/tcga_polygons/LUAD/TCGA-75-5146-01Z-00-DX1.4958A631-7E6F-4FBB-A1C3-B8F8368D46C5.svs.tar.gz'
+n_neighbors = frequency + 10 # the number of nuclei in each descriptor
 
 
 # In[ ]:
@@ -57,8 +57,6 @@ for fov in fovs: # for each fov
 df['area'] = df['area'].astype(float) # convert to float this field
 df['circularity'] = 4.0*np.pi*df['area'] / (df['perimeter']*df['perimeter']) # add circularity
 
-df = df.head(n=10000) # hard-coded downsize for memory issues 
-
 numb_nuclei = df.shape[0] 
 print(str(numb_nuclei)+' nuclei')
 
@@ -68,36 +66,42 @@ print('We consider '+str(size)+' descriptors')
 
 centroids = df.columns[:2];# print(centroids)
 X = df[centroids].to_numpy() # the full array of position
-n_neighbors = frequency + 10 # the number of nuclei in each descriptor
+
 print('Characterizing the neighborhood')
 nbrs = NearestNeighbors(n_neighbors=n_neighbors, algorithm='kd_tree',n_jobs=-1).fit(X) 
 distances, indices = nbrs.kneighbors(X) 
 
+
 # Parallel generation of the local covd
 data = df.to_numpy()
+
+s1, s2 = data[indices[fdf.index[0],:],:].shape
+tensor = np.empty((size,s1,s2))
+for node in tqdm(range(size)):
+    tensor[node,:,:] = data[indices[node,:],:]
+
 print('Generating the descriptor')
 num_cores = multiprocessing.cpu_count() # numb of cores
-node_vec_switch_centroid = Parallel(n_jobs=num_cores)(
-    delayed(covd_parallel_sparse)(node,data,indices) for node in tqdm(list(fdf.index))
+node_vec_switch = Parallel(n_jobs=num_cores)(
+    delayed(covd_parallel)(node,tensor) for node in tqdm(range(size))
     )
 
-nodes_with_covd = [l[0] for l in node_vec_switch_centroid if l[2] == 1] # list of nodes with proper covd
-nodes_wo_covd = [l[0] for l in node_vec_switch_centroid if l[2] == 0] # list of nodes wo covd
-fdf['covd'] = [0 for i in range(fdf.shape[0])]
+nodes_with_covd = [fdf.index[l[0]] for l in node_vec_switch if l[2] == 1] # list of nodes with proper covd
+nodes_wo_covd = [fdf.index[l[0]] for l in node_vec_switch if l[2] == 0] # list of nodes wo covd
+fdf['covd'] = [0 for i in range(size)]
 fdf.loc[nodes_with_covd,'covd'] = 1 # identify nodes with covd in dataframe
 fdf.loc[nodes_wo_covd,'covd'] = 0 # identify nodes wo covd in dataframe    
 print('There are '+str(len(nodes_with_covd))+' nodes with covd properly defined')
 
 # Add the descriptor feature to fdf
 fdf["descriptor"] = ""; fdf["descriptor"].astype(object)
-for item in node_vec_switch_centroid:
+for item in node_vec_switch:
     descriptor = item[1]
-    centroid = item[3]
-    node = item[0]
+    node = fdf.index[item[0]]
     fdf.at[node,'descriptor'] = pd.Series(descriptor).values
 
 # Generate the descriptor array
-descriptor = np.zeros((len(nodes_with_covd),node_vec_switch_centroid[0][1].shape[0]))
+descriptor = np.zeros((len(nodes_with_covd),node_vec_switch[0][1].shape[0]))
 r_idx = 0
 for index, row in fdf.iterrows():
     if row['covd']:

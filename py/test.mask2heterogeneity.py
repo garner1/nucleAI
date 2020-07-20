@@ -8,22 +8,8 @@ from graviti import *
 from numpy.linalg import norm
 import numpy as np
 import os
-import os.path
-from os import path
-import sys
 import glob
-import h5py
-import seaborn as sns
-import matplotlib.pyplot as plt
-import matplotlib
-#matplotlib.use('Agg')
-import plotly.graph_objects as go
-from plotly.graph_objs import *
-import plotly.express as px
-import hdbscan
 import pandas as pd
-import umap
-import networkx as nx
 from scipy import sparse, linalg
 import pickle
 from sklearn.preprocessing import normalize, scale
@@ -64,7 +50,7 @@ df['area'] = df['area'].astype(float) # convert to float this field
 
 numb_nuclei = df.shape[0] 
 print(str(numb_nuclei)+' nuclei')
-ssample =numb_nuclei//frequence     
+ssample = numb_nuclei//frequence     
 print('Downsampling '+str(ssample)+' nuclei')
 fdf = df.sample(n=ssample,random_state=1234) #!!!hard-coded random state 
 

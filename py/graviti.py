@@ -124,37 +124,6 @@ def measure_patch_of_polygons(filename,features):
     data.to_pickle(filename+'.morphometrics.pkl')
     return 
 
-# Show the log-log plot of the edge heterogeneity
-def plot_loglog(df,title):
-    values, bins = np.histogram(df['diversity'],bins=1000)
-    y = values
-    x = [0.5*(bins[i]+bins[i+1]) for i in range(len(bins)-1)]
-
-    plt.loglog(x, y,'r.')
-    plt.xlabel("edge heterogeneity", fontsize=14)
-    plt.ylabel("counts", fontsize=14)
-    plt.title(title)
-    plt.savefig(title+'.edgeH.loglog.png')
-    plt.close()
-    #plt.show()
-    return
-
-# Show the lognormal distribution of the node heterogeneity
-def plot_lognormal(df,title):
-    values, bins = np.histogram(np.log2(df['diversity']),bins=100) # take the hist of the log values
-    y = values
-    x = [0.5*(bins[i]+bins[i+1]) for i in range(len(bins)-1)]
-
-    plt.plot(x, y,'r.')
-    plt.xscale('linear')
-    plt.yscale('linear')
-    plt.xlabel("Log_2 node heterogeneity", fontsize=14)
-    plt.ylabel("counts", fontsize=14)
-    plt.title(title)
-    plt.savefig(title+'.nodeH.lognorm.png')
-    plt.close()
-    #plt.show()
-    return
 
 # Plotly contour visualization
 def plotlyContourPlot(fdf,filename):
@@ -245,56 +214,6 @@ def get_fov(df,row,col):
     print('Done')
     return fdf
 
-# def edge_diversity_parallel(node,neightbors,diversity,fdf):
-#     edge = []
-#     node_arr = fdf.loc[node,['centroid_x','centroid_y']].to_numpy()
-#     nn_arr = fdf.loc[neightbors,['centroid_x','centroid_y']].to_numpy()
-#     centroid = 0.5*(node_arr+nn_arr)
-#     array = np.hstack((centroid,diversity.reshape((diversity.shape[1],1))))
-#     edge.extend(array.tolist())
-#     return edge
-
-# def covd_gradient_parallel(node,descriptor,row_idx,col_idx,values):
-#     mask = row_idx == node         # find nearest neigthbors
-#     delta = norm(descriptor[node,:]-descriptor[col_idx[mask],:],axis=1) # broadcasting to get change at edges
-#     delta = np.reshape(delta,(1,delta.shape[0]))
-#     # if you consider graph weights in computing the diversity
-#     weights = values[mask]    
-#     return (node, col_idx[mask], delta, weights)
-
-# def covd(data,row_idx,col_idx,values):
-#     global_gradient = []
-#     for node in range(data.shape[0]):
-#         mat = data[nn_idx[node,:],:]
-#         C = np.corrcoef(mat.astype(float),rowvar=False) # compute correlation matrix to account for std
-#         gamma = 1.0e-08 # regularization parameter
-#         C += gamma*np.identity(C.shape[0]) # diagonal loading to regularize the covariance matrix
-#         problematic_nodes_switch = 1
-#         centroid = data[node,:2]
-#         try:
-#             L = linalg.logm(C)
-#             Lr = np.real_if_close(L) # remove small imaginary parts
-#             iu1 = np.triu_indices(Lr.shape[1])
-#             vec = Lr[iu1]
-#             return (node,vec,problematic_nodes_switch,centroid)
-#         except Exception:
-#             problematic_nodes_switch -= 1
-#             iu1 = np.triu_indices(C.shape[1])
-#             vec = 0.0*C[iu1]
-#             return (node,vec,problematic_nodes_switch,centroid)
-
-#         global_gradient.append(gradient)
-#     return global_gradient
-
-
-# def covd_parallel(node,data,row_idx,col_idx): # returns the vec of the logarithm of the cov matrix
-#     mask = row_idx == node         # find nearest neigthbors
-#     cluster = np.append(node,col_idx[mask]) # define the local cluster, its size depends on the local connectivity
-#     C = np.corrcoef(data[cluster,:],rowvar=False)
-#     L = linalg.logm(C) 
-#     iu1 = np.triu_indices(L.shape[1])
-#     vec = L[iu1]
-#     return (node,vec)
 
 
 def covd_parallel(node,data):
@@ -577,3 +496,86 @@ def networkx2igraph(graph,nodes,edges):     # given a networkx graph creates an 
     for attr in edgelist.columns[2:]:
         g.es[attr] = edgelist[attr]
     return g
+
+# # Show the log-log plot of the edge heterogeneity
+# def plot_loglog(df,title):
+#     values, bins = np.histogram(df['diversity'],bins=1000)
+#     y = values
+#     x = [0.5*(bins[i]+bins[i+1]) for i in range(len(bins)-1)]
+
+#     plt.loglog(x, y,'r.')
+#     plt.xlabel("edge heterogeneity", fontsize=14)
+#     plt.ylabel("counts", fontsize=14)
+#     plt.title(title)
+#     plt.savefig(title+'.edgeH.loglog.png')
+#     plt.close()
+#     #plt.show()
+#     return
+
+# # Show the lognormal distribution of the node heterogeneity
+# def plot_lognormal(df,title):
+#     values, bins = np.histogram(np.log2(df['diversity']),bins=100) # take the hist of the log values
+#     y = values
+#     x = [0.5*(bins[i]+bins[i+1]) for i in range(len(bins)-1)]
+
+#     plt.plot(x, y,'r.')
+#     plt.xscale('linear')
+#     plt.yscale('linear')
+#     plt.xlabel("Log_2 node heterogeneity", fontsize=14)
+#     plt.ylabel("counts", fontsize=14)
+#     plt.title(title)
+#     plt.savefig(title+'.nodeH.lognorm.png')
+#     plt.close()
+#     #plt.show()
+#     return
+
+# def edge_diversity_parallel(node,neightbors,diversity,fdf):
+#     edge = []
+#     node_arr = fdf.loc[node,['centroid_x','centroid_y']].to_numpy()
+#     nn_arr = fdf.loc[neightbors,['centroid_x','centroid_y']].to_numpy()
+#     centroid = 0.5*(node_arr+nn_arr)
+#     array = np.hstack((centroid,diversity.reshape((diversity.shape[1],1))))
+#     edge.extend(array.tolist())
+#     return edge
+
+# def covd_gradient_parallel(node,descriptor,row_idx,col_idx,values):
+#     mask = row_idx == node         # find nearest neigthbors
+#     delta = norm(descriptor[node,:]-descriptor[col_idx[mask],:],axis=1) # broadcasting to get change at edges
+#     delta = np.reshape(delta,(1,delta.shape[0]))
+#     # if you consider graph weights in computing the diversity
+#     weights = values[mask]    
+#     return (node, col_idx[mask], delta, weights)
+
+# def covd(data,row_idx,col_idx,values):
+#     global_gradient = []
+#     for node in range(data.shape[0]):
+#         mat = data[nn_idx[node,:],:]
+#         C = np.corrcoef(mat.astype(float),rowvar=False) # compute correlation matrix to account for std
+#         gamma = 1.0e-08 # regularization parameter
+#         C += gamma*np.identity(C.shape[0]) # diagonal loading to regularize the covariance matrix
+#         problematic_nodes_switch = 1
+#         centroid = data[node,:2]
+#         try:
+#             L = linalg.logm(C)
+#             Lr = np.real_if_close(L) # remove small imaginary parts
+#             iu1 = np.triu_indices(Lr.shape[1])
+#             vec = Lr[iu1]
+#             return (node,vec,problematic_nodes_switch,centroid)
+#         except Exception:
+#             problematic_nodes_switch -= 1
+#             iu1 = np.triu_indices(C.shape[1])
+#             vec = 0.0*C[iu1]
+#             return (node,vec,problematic_nodes_switch,centroid)
+
+#         global_gradient.append(gradient)
+#     return global_gradient
+
+
+# def covd_parallel(node,data,row_idx,col_idx): # returns the vec of the logarithm of the cov matrix
+#     mask = row_idx == node         # find nearest neigthbors
+#     cluster = np.append(node,col_idx[mask]) # define the local cluster, its size depends on the local connectivity
+#     C = np.corrcoef(data[cluster,:],rowvar=False)
+#     L = linalg.logm(C) 
+#     iu1 = np.triu_indices(L.shape[1])
+#     vec = L[iu1]
+#     return (node,vec)

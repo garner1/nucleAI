@@ -153,7 +153,7 @@ def plotlyContourPlot(fdf,filename):
     fig.show()
     return
 
-def contourPlot(fdf,N,aggfunc,filename): # Contour visualization
+def contourPlot(fdf,N,aggfunc,levels,cmap,filename): # Contour visualization
     ratio = fdf.max()[0]/fdf.max()[1] # ratio of max x and y centroids coordinates
     Nx = int(round(ratio*N))
     fdf['x_bin'] = pd.cut(fdf['centroid_x'], Nx, labels=False) # define the x bin label
@@ -166,7 +166,6 @@ def contourPlot(fdf,N,aggfunc,filename): # Contour visualization
                            columns=['y_bin'],
                            aggfunc=aggfunc, # take the mean or another function of the entries in the bin
                            fill_value=None)
-
     X=table.columns.values
     Y=table.index.values
     Z=table.values
@@ -175,11 +174,12 @@ def contourPlot(fdf,N,aggfunc,filename): # Contour visualization
     fig, ax = plt.subplots(figsize=(ratio*10,10))
     cs = ax.contourf(Yi, Xi, Z, 
                      alpha=1.0, 
-                     levels=10,
-                     cmap=plt.cm.viridis);
+                     levels=levels,
+                     cmap=cmap);
     ax.invert_yaxis()
     cbar = fig.colorbar(cs)
     plt.savefig(filename+'.contour.png')
+    plt.show()
     plt.close()
     
 def get_fov(df,row,col):

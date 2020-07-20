@@ -245,50 +245,64 @@ def get_fov(df,row,col):
     print('Done')
     return fdf
 
-def edge_diversity_parallel(node,neightbors,diversity,fdf):
-    edge = []
-    node_arr = fdf.loc[node,['centroid_x','centroid_y']].to_numpy()
-    nn_arr = fdf.loc[neightbors,['centroid_x','centroid_y']].to_numpy()
-    centroid = 0.5*(node_arr+nn_arr)
-    array = np.hstack((centroid,diversity.reshape((diversity.shape[1],1))))
-    edge.extend(array.tolist())
-    return edge
+# def edge_diversity_parallel(node,neightbors,diversity,fdf):
+#     edge = []
+#     node_arr = fdf.loc[node,['centroid_x','centroid_y']].to_numpy()
+#     nn_arr = fdf.loc[neightbors,['centroid_x','centroid_y']].to_numpy()
+#     centroid = 0.5*(node_arr+nn_arr)
+#     array = np.hstack((centroid,diversity.reshape((diversity.shape[1],1))))
+#     edge.extend(array.tolist())
+#     return edge
 
-def covd_gradient_parallel(node,descriptor,row_idx,col_idx,values):
-    mask = row_idx == node         # find nearest neigthbors
-    delta = norm(descriptor[node,:]-descriptor[col_idx[mask],:],axis=1) # broadcasting to get change at edges
-    delta = np.reshape(delta,(1,delta.shape[0]))
-    # if you consider graph weights in computing the diversity
-    weights = values[mask]    
-    return (node, col_idx[mask], delta, weights)
+# def covd_gradient_parallel(node,descriptor,row_idx,col_idx,values):
+#     mask = row_idx == node         # find nearest neigthbors
+#     delta = norm(descriptor[node,:]-descriptor[col_idx[mask],:],axis=1) # broadcasting to get change at edges
+#     delta = np.reshape(delta,(1,delta.shape[0]))
+#     # if you consider graph weights in computing the diversity
+#     weights = values[mask]    
+#     return (node, col_idx[mask], delta, weights)
 
-def covd_gradient(descriptor,row_idx,col_idx,values):
-    global_gradient = []
-    for node in range(descriptor.shape[0]):
-        print(node)
-        mask = row_idx == node         # find nearest neigthbors
-        reference = np.repeat([descriptor[node,:]], sum(mask), axis=0)
-        delta = norm(reference-descriptor[col_idx[mask],:],axis=1)
-        delta = np.reshape(delta,(1,delta.shape[0]))
-        weights = values[mask]
-        gradient = np.dot(delta,weights)
-        global_gradient.append(gradient)
-    return global_gradient
+# def covd(data,row_idx,col_idx,values):
+#     global_gradient = []
+#     for node in range(data.shape[0]):
+#         mat = data[nn_idx[node,:],:]
+#         C = np.corrcoef(mat.astype(float),rowvar=False) # compute correlation matrix to account for std
+#         gamma = 1.0e-08 # regularization parameter
+#         C += gamma*np.identity(C.shape[0]) # diagonal loading to regularize the covariance matrix
+#         problematic_nodes_switch = 1
+#         centroid = data[node,:2]
+#         try:
+#             L = linalg.logm(C)
+#             Lr = np.real_if_close(L) # remove small imaginary parts
+#             iu1 = np.triu_indices(Lr.shape[1])
+#             vec = Lr[iu1]
+#             return (node,vec,problematic_nodes_switch,centroid)
+#         except Exception:
+#             problematic_nodes_switch -= 1
+#             iu1 = np.triu_indices(C.shape[1])
+#             vec = 0.0*C[iu1]
+#             return (node,vec,problematic_nodes_switch,centroid)
+
+#         global_gradient.append(gradient)
+#     return global_gradient
 
 
-def covd_parallel(node,data,row_idx,col_idx): # returns the vec of the logarithm of the cov matrix
-    mask = row_idx == node         # find nearest neigthbors
-    cluster = np.append(node,col_idx[mask]) # define the local cluster, its size depends on the local connectivity
-    C = np.corrcoef(data[cluster,:],rowvar=False)
-    L = linalg.logm(C) 
-    iu1 = np.triu_indices(L.shape[1])
-    vec = L[iu1]
-    return (node,vec)
+# def covd_parallel(node,data,row_idx,col_idx): # returns the vec of the logarithm of the cov matrix
+#     mask = row_idx == node         # find nearest neigthbors
+#     cluster = np.append(node,col_idx[mask]) # define the local cluster, its size depends on the local connectivity
+#     C = np.corrcoef(data[cluster,:],rowvar=False)
+#     L = linalg.logm(C) 
+#     iu1 = np.triu_indices(L.shape[1])
+#     vec = L[iu1]
+#     return (node,vec)
 
-def covd_parallel_sparse(node,data,nn_idx):
-    mat = data[nn_idx[node,:],:]
-    C = np.corrcoef(mat.astype(float),rowvar=False)
-    problematic_nodes_switch = 0
+
+def covd_parallel(node,data):
+    mat = data[node,:,:]
+    C = np.corrcoef(mat.astype(float),rowvar=False) # compute correlation matrix to account for std
+    gamma = 1.0e-08 # regularization parameter
+    C += gamma*np.identity(C.shape[0]) # diagonal loading to regularize the covariance matrix
+    problematic_nodes_switch = 1
     try:
         L = linalg.logm(C)
         Lr = np.real_if_close(L) # remove small imaginary parts
@@ -296,11 +310,29 @@ def covd_parallel_sparse(node,data,nn_idx):
         vec = Lr[iu1]
         return (node,vec,problematic_nodes_switch)
     except Exception:
-        problematic_nodes_switch += 1
+        problematic_nodes_switch -= 1
         iu1 = np.triu_indices(C.shape[1])
         vec = 0.0*C[iu1]
         return (node,vec,problematic_nodes_switch)
-    #return (node,vec,problematic_nodes_switch)
+
+def covd_parallel_sparse(node,data,nn_idx):
+    mat = data[nn_idx[node,:],:]
+    C = np.corrcoef(mat.astype(float),rowvar=False) # compute correlation matrix to account for std
+    gamma = 1.0e-08 # regularization parameter
+    C += gamma*np.identity(C.shape[0]) # diagonal loading to regularize the covariance matrix
+    problematic_nodes_switch = 1
+    centroid = data[node,:2]
+    try:
+        L = linalg.logm(C)
+        Lr = np.real_if_close(L) # remove small imaginary parts
+        iu1 = np.triu_indices(Lr.shape[1])
+        vec = Lr[iu1]
+        return (node,vec,problematic_nodes_switch,centroid)
+    except Exception:
+        problematic_nodes_switch -= 1
+        iu1 = np.triu_indices(C.shape[1])
+        vec = 0.0*C[iu1]
+        return (node,vec,problematic_nodes_switch,centroid)
 
     
 def filtering_HE(df):

@@ -5,12 +5,9 @@ import numpy as np
 import sys
 import umap
 import warnings
-from scipy import sparse, linalg
-from scipy.sparse import coo_matrix
 import networkx as nx
 from sklearn import preprocessing
 from sklearn.decomposition import PCA
-warnings.filterwarnings('ignore')
 from sklearn.preprocessing import normalize, scale
 import numba
 import igraph
@@ -18,13 +15,20 @@ import pandas as pd
 import plotly.graph_objects as go
 from plotly.graph_objs import *
 from numpy.linalg import norm
+
 from scipy.sparse import find
+from scipy import stats
+from scipy import sparse, linalg
+from scipy.sparse import coo_matrix
+
 import matplotlib.pyplot as plt
 import os
+
 from skimage.draw import polygon
 from skimage.measure import label, regionprops#, regionprops_table
-
 from skimage import io
+
+warnings.filterwarnings('ignore')
 
 # Given the nonzero pixel values show the mask
 def show_patch_from_polygon(filename,x_list,y_list):
@@ -217,22 +221,25 @@ def get_fov(df,row,col):
 
 
 def covd_parallel(node,data):
-    mat = data[node,:,:]
-    C = np.corrcoef(mat.astype(float),rowvar=False) # compute correlation matrix to account for std
+    mat = data[node,:,:].copy()
+    rescaled_xy = stats.zscore(mat[:,:2]) # rescale position locally by mean and std
+    mat[:,:2] = rescaled_xy # update positions
+    C = np.cov(mat,rowvar=False)
+
     gamma = 1.0e-08 # regularization parameter
     C += gamma*np.identity(C.shape[0]) # diagonal loading to regularize the covariance matrix
-    problematic_nodes_switch = 1
+    covd_ok = 1 # boolean switch to signal if covd is defined or not
     try:
         L = linalg.logm(C)
         Lr = np.real_if_close(L) # remove small imaginary parts
         iu1 = np.triu_indices(Lr.shape[1])
         vec = Lr[iu1]
-        return (node,vec,problematic_nodes_switch)
+        return (node,vec,covd_ok)
     except Exception:
-        problematic_nodes_switch -= 1
+        covd_ok -= 1
         iu1 = np.triu_indices(C.shape[1])
         vec = 0.0*C[iu1]
-        return (node,vec,problematic_nodes_switch)
+        return (node,vec,covd_ok)
 
 def covd_parallel_sparse(node,data,nn_idx):
     mat = data[nn_idx[node,:],:]

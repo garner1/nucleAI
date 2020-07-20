@@ -35,8 +35,6 @@ from sklearn.neighbors import NearestNeighbors
 
 frequency = int(sys.argv[1]) # how often to pick a nuclei as a seed = size of the covd sample nuclei
 dirpath = sys.argv[2] # the full path to the sample directory
-#frequency = 10 # how often to pick a nuclei as a seed = size of the covd sample nuclei
-#dirpath = '/home/garner1/Work/dataset/tcga_polygons/LUAD/TCGA-75-5146-01Z-00-DX1.4958A631-7E6F-4FBB-A1C3-B8F8368D46C5.svs.tar.gz'
 n_neighbors = frequency + 10 # the number of nuclei in each descriptor
 
 
@@ -53,7 +51,9 @@ print('There are '+str(len(fovs))+' FOVs')
 for fov in fovs: # for each fov
     data = pd.read_pickle(fov)
     df = df.append(data, ignore_index = True)
-
+    
+df = df[df['perimeter']>1] # filter out small nuclei
+df = df[df['area']>1] # filter out small nuclei
 df['area'] = df['area'].astype(float) # convert to float this field
 df['circularity'] = 4.0*np.pi*df['area'] / (df['perimeter']*df['perimeter']) # add circularity
 
@@ -71,12 +71,16 @@ print('Characterizing the neighborhood')
 nbrs = NearestNeighbors(n_neighbors=n_neighbors, algorithm='kd_tree',n_jobs=-1).fit(X) 
 distances, indices = nbrs.kneighbors(X) 
 
-
 # Parallel generation of the local covd
-data = df.to_numpy()
+data = df.to_numpy(dtype=np.float64)
+
+from scipy import stats
+rescaled_data = stats.zscore(data[:,2:]) # rescale morphometric data by mean and std
+data[:,2:] = rescaled_data # update data morphometrics
 
 s1, s2 = data[indices[fdf.index[0],:],:].shape
 tensor = np.empty((size,s1,s2))
+
 for node in tqdm(range(size)):
     tensor[node,:,:] = data[indices[node,:],:]
 

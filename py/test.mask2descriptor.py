@@ -35,7 +35,7 @@ from sklearn.neighbors import NearestNeighbors
 
 frequency = int(sys.argv[1]) # how often to pick a nuclei as a seed = size of the covd sample nuclei
 dirpath = sys.argv[2] # the full path to the sample directory
-n_neighbors = frequency + 10 # the number of nuclei in each descriptor
+n_neighbors = 50 # the number of nuclei in each descriptor
 
 
 # In[ ]:
@@ -52,8 +52,9 @@ for fov in fovs: # for each fov
     data = pd.read_pickle(fov)
     df = df.append(data, ignore_index = True)
     
-df = df[df['perimeter']>1] # filter out small nuclei
-df = df[df['area']>1] # filter out small nuclei
+df = df[df['area']>10] # filter out small nuclei
+df = df[df['perimeter']>0] # make sure perimeter is always positive
+
 df['area'] = df['area'].astype(float) # convert to float this field
 df['circularity'] = 4.0*np.pi*df['area'] / (df['perimeter']*df['perimeter']) # add circularity
 

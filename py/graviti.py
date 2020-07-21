@@ -239,6 +239,7 @@ def covd_parallel(node,data):
         iu1 = np.triu_indices(Lr.shape[1])
         vec = Lr[iu1]
 
+        # -Tr(C/d*Log(C/d))
         d = np.trace(C)
         entropy = -1.0*( np.trace(np.dot(C,Lr)) - C.shape[0]*np.log(d) )/d
         

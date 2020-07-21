@@ -222,12 +222,16 @@ def get_fov(df,row,col):
 
 def covd_parallel(node,data):
     mat = data[node,:,:].copy()
-    rescaled_xy = stats.zscore(mat[:,:2]) # rescale position locally by mean and std
-    mat[:,:2] = rescaled_xy # update positions
-    C = np.cov(mat,rowvar=False)
 
+    # rescaled_xy = stats.zscore(mat[:,:2]) # rescale position locally by mean and std
+    # mat[:,:2] = rescaled_xy # update positions
+    # C = np.cov(mat,rowvar=False)
+
+    C = np.corrcoeff(mat,rowvar=False)
+    
     gamma = 1.0e-08 # regularization parameter
     C += gamma*np.identity(C.shape[0]) # diagonal loading to regularize the covariance matrix
+
     covd_ok = 1 # boolean switch to signal if covd is defined or not
     try:
         L = linalg.logm(C)

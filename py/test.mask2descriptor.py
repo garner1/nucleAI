@@ -75,9 +75,9 @@ distances, indices = nbrs.kneighbors(X)
 # Parallel generation of the local covd
 data = df.to_numpy(dtype=np.float64)
 
-from scipy import stats
-rescaled_data = stats.zscore(data[:,2:]) # rescale morphometric data by mean and std
-data[:,2:] = rescaled_data # update data morphometrics
+# from scipy import stats
+# rescaled_data = stats.zscore(data[:,2:]) # rescale morphometric data by mean and std
+# data[:,2:] = rescaled_data # update data morphometrics
 
 s1, s2 = data[indices[fdf.index[0],:],:].shape
 tensor = np.empty((size,s1,s2))

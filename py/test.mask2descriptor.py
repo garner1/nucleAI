@@ -87,26 +87,33 @@ for node in tqdm(range(size)):
 
 print('Generating the descriptor')
 num_cores = multiprocessing.cpu_count() # numb of cores
-node_vec_switch = Parallel(n_jobs=num_cores)(
+node_vec_switch_entropy = Parallel(n_jobs=num_cores)(
     delayed(covd_parallel)(node,tensor) for node in tqdm(range(size))
     )
 
-nodes_with_covd = [fdf.index[l[0]] for l in node_vec_switch if l[2] == 1] # list of nodes with proper covd
-nodes_wo_covd = [fdf.index[l[0]] for l in node_vec_switch if l[2] == 0] # list of nodes wo covd
+nodes_with_covd = [fdf.index[l[0]] for l in node_vec_switch_entropy if l[2] == 1] # list of nodes with proper covd
+nodes_wo_covd = [fdf.index[l[0]] for l in node_vec_switch_entropy if l[2] == 0] # list of nodes wo covd
 fdf['covd'] = [0 for i in range(size)]
 fdf.loc[nodes_with_covd,'covd'] = 1 # identify nodes with covd in dataframe
 fdf.loc[nodes_wo_covd,'covd'] = 0 # identify nodes wo covd in dataframe    
 print('There are '+str(len(nodes_with_covd))+' nodes with covd properly defined')
 
-# Add the descriptor feature to fdf
+# Add the entropy feature to fdf
+fdf["entropy"] = ""; fdf["entropy"].astype(object)
+for item in node_vec_switch_entropy:
+    entropy = item[3]
+    node = fdf.index[item[0]]
+    fdf.at[node,'entropy'] = entropy
+
+    # Add the descriptor feature to fdf
 fdf["descriptor"] = ""; fdf["descriptor"].astype(object)
-for item in node_vec_switch:
+for item in node_vec_switch_entropy:
     descriptor = item[1]
     node = fdf.index[item[0]]
     fdf.at[node,'descriptor'] = pd.Series(descriptor).values
 
 # Generate the descriptor array
-descriptor = np.zeros((len(nodes_with_covd),node_vec_switch[0][1].shape[0]))
+descriptor = np.zeros((len(nodes_with_covd),node_vec_switch_entropy[0][1].shape[0]))
 r_idx = 0
 for index, row in fdf.iterrows():
     if row['covd']:

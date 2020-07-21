@@ -153,7 +153,7 @@ def plotlyContourPlot(fdf,filename):
     fig.show()
     return
 
-def contourPlot(fdf,N,aggfunc,levels,cmap,filename): # Contour visualization
+def contourPlot(fdf,feature,N,aggfunc,levels,cmap,filename): # Contour visualization
     ratio = fdf.max()[0]/fdf.max()[1] # ratio of max x and y centroids coordinates
     Nx = int(round(ratio*N))
     fdf['x_bin'] = pd.cut(fdf['centroid_x'], Nx, labels=False) # define the x bin label
@@ -161,7 +161,7 @@ def contourPlot(fdf,N,aggfunc,levels,cmap,filename): # Contour visualization
 
     # define the pivot tabel for the contour plot
     table = pd.pivot_table(fdf, 
-                           values='heterogeneity', 
+                           values=feature, 
                            index=['x_bin'],
                            columns=['y_bin'],
                            aggfunc=aggfunc, # take the mean or another function of the entries in the bin
@@ -219,7 +219,6 @@ def get_fov(df,row,col):
     return fdf
 
 
-
 def covd_parallel(node,data):
     mat = data[node,:,:].copy()
 
@@ -228,22 +227,28 @@ def covd_parallel(node,data):
     # C = np.cov(mat,rowvar=False)
 
     C = np.corrcoef(mat,rowvar=False)
-    
-    gamma = 1.0e-08 # regularization parameter
-    C += gamma*np.identity(C.shape[0]) # diagonal loading to regularize the covariance matrix
+
+    # gamma = 1.0e-08 # regularization parameter
+    # C += gamma*np.identity(C.shape[0]) # diagonal loading to regularize the covariance matrix
 
     covd_ok = 1 # boolean switch to signal if covd is defined or not
+    entropy = np.nan
     try:
         L = linalg.logm(C)
         Lr = np.real_if_close(L) # remove small imaginary parts
         iu1 = np.triu_indices(Lr.shape[1])
         vec = Lr[iu1]
-        return (node,vec,covd_ok)
+
+        d = np.trace(C)
+        entropy = -1.0*( np.trace(np.dot(C,Lr)) - C.shape[0]*np.log(d) )/d
+        
+        return (node,vec,covd_ok,entropy)
     except Exception:
         covd_ok -= 1
         iu1 = np.triu_indices(C.shape[1])
         vec = 0.0*C[iu1]
-        return (node,vec,covd_ok)
+        return (node,vec,covd_ok,entropy)
+    return
 
 def covd_parallel_sparse(node,data,nn_idx):
     mat = data[nn_idx[node,:],:]

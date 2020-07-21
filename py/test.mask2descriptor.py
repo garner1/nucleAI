@@ -34,8 +34,8 @@ from sklearn.neighbors import NearestNeighbors
 
 
 frequency = int(sys.argv[1]) # how often to pick a nuclei as a seed = size of the covd sample nuclei
-dirpath = sys.argv[2] # the full path to the sample directory
-n_neighbors = 50 # the number of nuclei in each descriptor
+n_neighbors = int(sys.argv[2]) # the number of nuclei in each descriptor
+dirpath = sys.argv[3] # the full path to the sample directory
 
 
 # In[ ]:

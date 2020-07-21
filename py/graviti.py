@@ -227,7 +227,7 @@ def covd_parallel(node,data):
     # mat[:,:2] = rescaled_xy # update positions
     # C = np.cov(mat,rowvar=False)
 
-    C = np.corrcoeff(mat,rowvar=False)
+    C = np.corrcoef(mat,rowvar=False)
     
     gamma = 1.0e-08 # regularization parameter
     C += gamma*np.identity(C.shape[0]) # diagonal loading to regularize the covariance matrix

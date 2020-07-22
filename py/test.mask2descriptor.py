@@ -117,7 +117,7 @@ descriptor = np.zeros((len(nodes_with_covd),node_vec_switch_entropy[0][1].shape[
 r_idx = 0
 for index, row in fdf.iterrows():
     if row['covd']:
-        descriptor[r_idx,:] = row['descriptor']
+        descriptor[r_idx,:] = row['descriptor'].real
         r_idx += 1
 
 mean_covd = np.mean(descriptor,axis=0) # evaluate the barycenter descriptor

@@ -52,8 +52,8 @@ for fov in fovs: # for each fov
     data = pd.read_pickle(fov)
     df = df.append(data, ignore_index = True)
     
-df = df[df['area']>10] # filter out small nuclei
-df = df[df['perimeter']>0] # make sure perimeter is always positive
+df = df[df['area']>10].reset_index(drop=True) # filter out small nuclei
+df = df[df['perimeter']>0].reset_index(drop=True) # make sure perimeter is always positive
 
 df['area'] = df['area'].astype(float) # convert to float this field
 df['circularity'] = 4.0*np.pi*df['area'] / (df['perimeter']*df['perimeter']) # add circularity
@@ -74,10 +74,6 @@ distances, indices = nbrs.kneighbors(X)
 
 # Parallel generation of the local covd
 data = df.to_numpy(dtype=np.float64)
-
-# from scipy import stats
-# rescaled_data = stats.zscore(data[:,2:]) # rescale morphometric data by mean and std
-# data[:,2:] = rescaled_data # update data morphometrics
 
 s1, s2 = data[indices[fdf.index[0],:],:].shape
 tensor = np.empty((size,s1,s2))

@@ -129,7 +129,7 @@ fdf.loc[nodes_wo_covd,'heterogeneity'] = np.nan
 # In[ ]:
 
 
-filename = dirpath+'/'+sample+'.nuclei'+str(numb_nuclei)+'.size'+str(size)+'.covdNN'+str(n_neighbors)+'.features.pkl'
+filename = dirpath+'/'+sample+'.nuclei'+str(numb_nuclei)+'.numbCovd'+str(size)+'.freq'+str(frequency)+'.covdNN'+str(n_neighbors)+'.features.pkl'
 fdf.to_pickle(filename)
 
 

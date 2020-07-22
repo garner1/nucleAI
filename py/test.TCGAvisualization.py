@@ -92,7 +92,6 @@ for name, group in groups:
     ax.plot(group.x, group.y, marker='o', linestyle='', ms=10, label=name)
 ax.legend()
 plt.title('UMAP projection of the TCGA dataset', fontsize=12)
-#plt.show()
 plt.savefig('tcga.umap.s'+str(df.shape[0])+'.png')
 
 
@@ -119,11 +118,7 @@ for name, group in groups:
     ax.plot(group.x, group.y, marker='o', linestyle='', ms=10, label=name)
 ax.legend()
 plt.title('PCA projection of the TCGA dataset', fontsize=12)
-#plt.show()
 plt.savefig('tcga.pca.s'+str(df.shape[0])+'.png')
-
-
-# In[ ]:
 
 
 

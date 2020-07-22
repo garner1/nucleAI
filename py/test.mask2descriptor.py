@@ -82,7 +82,7 @@ data = df.to_numpy(dtype=np.float64)
 s1, s2 = data[indices[fdf.index[0],:],:].shape
 tensor = np.empty((size,s1,s2))
 
-for node in tqdm(range(size)):
+for node in range(size):
     tensor[node,:,:] = data[indices[node,:],:]
 
 print('Generating the descriptor')

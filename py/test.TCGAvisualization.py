@@ -89,7 +89,7 @@ groups = df.groupby('label')
 fig, ax = plt.subplots(figsize=(10,10))
 ax.margins(0.05) # Optional, just adds 5% padding to the autoscaling
 for name, group in groups:
-    ax.plot(group.x, group.y, marker='o', linestyle='', ms=10, label=name)
+    ax.plot(group.x, group.y, marker='o', linestyle='', ms=6, label=name, alpha=0.5)
 ax.legend()
 plt.title('UMAP projection of the TCGA dataset', fontsize=12)
 plt.savefig('tcga.umap.s'+str(df.shape[0])+'.png')
@@ -107,7 +107,7 @@ y = principalComponents[:,1]
 z = principalComponents[:,2]
 labels = ctype
 
-df = pd.DataFrame(dict(x=y, y=z, label=labels))
+df = pd.DataFrame(dict(x=x, y=y, label=labels))
 
 groups = df.groupby('label')
 
@@ -115,7 +115,7 @@ groups = df.groupby('label')
 fig, ax = plt.subplots(figsize=(10, 10))
 ax.margins(0.05) # Optional, just adds 5% padding to the autoscaling
 for name, group in groups:
-    ax.plot(group.x, group.y, marker='o', linestyle='', ms=10, label=name)
+    ax.plot(group.x, group.y, marker='o', linestyle='', ms=6, label=name, alpha=0.5)
 ax.legend()
 plt.title('PCA projection of the TCGA dataset', fontsize=12)
 plt.savefig('tcga.pca.s'+str(df.shape[0])+'.png')

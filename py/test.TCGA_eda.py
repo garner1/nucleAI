@@ -61,7 +61,7 @@ def scattered2d_tcga(df,filename):
                      hover_name='sample',
                      color_discrete_sequence=px.colors.qualitative.Plotly
     )
-    fig.update_traces(marker=dict(size=5,opacity=1.0))
+    fig.update_traces(marker=dict(size=2,opacity=1.0))
     fig.update_layout(template='simple_white')
     fig.update_layout(legend= {'itemsizing': 'constant'})
     fig.write_html(filename+'.tcga.html', auto_open=False)
@@ -74,7 +74,7 @@ def scattered3d_tcga(df,filename):
                         hover_name='sample',
                         color_discrete_sequence=px.colors.qualitative.Plotly
     )
-    fig.update_traces(marker=dict(size=3,opacity=1.0))
+    fig.update_traces(marker=dict(size=2,opacity=1.0))
     fig.update_layout(template='simple_white')
     fig.update_layout(legend= {'itemsizing': 'constant'})
     fig.write_html(filename+'.tcga.html', auto_open=False)

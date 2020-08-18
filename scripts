@@ -1,4 +1,0 @@
-parallel "tar -xf {}/{} -C {}" ::: $(ls TCGA-*.gz)
-
-for s in  ~/Work/dataset/tcga_polygons/LUAD/TCGA-*.svs.tar.gz; do echo ${s}; time parallel "/usr/local/share/anaconda3/bin/ipython test.polygon2mask.patch.morphometry.py
-{}" ::: ${s}/luad_polygon/TCGA-*.svs/*-features.csv; done

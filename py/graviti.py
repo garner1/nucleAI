@@ -107,20 +107,20 @@ def measure_patch_of_polygons(filename,features):
         label_mask = label(mask)
         
         # calculate morphometrics
-        try:
-            regions = regionprops(label_mask, coordinates='rc')        
-        except ValueError:  #raised if array is empty.
-            pass
-            
         dicts = {}
         keys = features
-        for i in keys:
-            if i == 'centroid_x':
-                dicts[i] = np.rint(regions[0]['centroid'][1]+mini[1]).astype(int) # x-coord is column
-            elif i == 'centroid_y':
-                dicts[i] = np.rint(regions[0]['centroid'][0]+mini[0]).astype(int) # y-coord is row
-            else:
-                dicts[i] = regions[0][i]
+        try:
+            regions = regionprops(label_mask, coordinates='rc')        
+            if len(regions) > 0:
+                for i in keys:
+                    if i == 'centroid_x':
+                        dicts[i] = np.rint(regions[0]['centroid'][1]+mini[1]).astype(int) # x-coord is column
+                    elif i == 'centroid_y':
+                        dicts[i] = np.rint(regions[0]['centroid'][0]+mini[0]).astype(int) # y-coord is row
+                    else:
+                        dicts[i] = regions[0][i]
+        except ValueError:  #raised if array is empty.
+            pass
         
         # update morphometrics data 
         new_df = pd.DataFrame(dicts, index=[0])

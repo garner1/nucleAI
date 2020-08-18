@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 # coding: utf-8
-
+#
+# This scriptr profides a graph visualization of the sample nuclei
+#
 # In[ ]:
 
 

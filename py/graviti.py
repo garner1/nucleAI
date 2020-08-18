@@ -179,6 +179,7 @@ def contourPlot(fdf,feature,N,aggfunc,levels,cmap,filename): # Contour visualiza
     ax.invert_yaxis()
     cbar = fig.colorbar(cs)
     plt.savefig(filename+'.contour.png')
+    plt.title(os.path.basename(filename))
     plt.show()
     plt.close()
     

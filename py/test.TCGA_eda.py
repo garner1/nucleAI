@@ -90,7 +90,7 @@ def load_barycenters(sample):
 
 # In[33]:
 
-samples = glob.glob('/media/garner1/hdd2/TCGA_polygons/*/*/*.freq10.*.pkl')
+samples = glob.glob('/media/garner1/hdd2/TCGA_polygons/*/*/*.freq10.covdNN50.features.pkl')
 
 num_cores = multiprocessing.cpu_count() # numb of cores
 barycenter_list = Parallel(n_jobs=num_cores)(

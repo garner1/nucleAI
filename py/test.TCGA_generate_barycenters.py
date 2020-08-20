@@ -46,4 +46,5 @@ for b in barycenter_list:
     row += 1
 barycenters = barycenters[~np.all(barycenters == 0, axis=1)]
 
-pickle.dump(barycenters, open("barycenters.pkl", "w"))
+outfile = 'covd_barycenters'
+np.save(outfile,barycenters)

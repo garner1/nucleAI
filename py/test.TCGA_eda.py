@@ -52,47 +52,12 @@ warnings.filterwarnings('ignore')
 from sklearn.neighbors import KDTree
 from sklearn.neighbors import NearestNeighbors
 
-
-########################
-def scattered2d_tcga(df,filename):
-    fig = px.scatter(df,
-                     x="x", y="y",
-                     color="label",
-                     hover_name='sample',
-                     color_discrete_sequence=px.colors.qualitative.Plotly
-    )
-    fig.update_traces(marker=dict(size=2,opacity=1.0))
-    fig.update_layout(template='simple_white')
-    fig.update_layout(legend= {'itemsizing': 'constant'})
-    fig.write_html(filename+'.tcga.html', auto_open=False)
-    return
-
-def scattered3d_tcga(df,filename):
-    fig = px.scatter_3d(df,
-                        x="x", y="y", z="z",
-                        color="label",
-                        hover_name='sample',
-                        color_discrete_sequence=px.colors.qualitative.Plotly
-    )
-    fig.update_traces(marker=dict(size=2,opacity=1.0))
-    fig.update_layout(template='simple_white')
-    fig.update_layout(legend= {'itemsizing': 'constant'})
-    fig.write_html(filename+'.tcga.html', auto_open=False)
-    return
-
-def load_barycenters(sample):
-    df = pd.read_pickle(sample)
-    barycenter = df[df['covd']==1]['descriptor'].mean()
-    return barycenter
-
-########################
-
-
 # In[33]:
 
 samples = glob.glob('/media/garner1/hdd2/TCGA_polygons/*/*/*.freq10.covdNN50.features.pkl')
-
 num_cores = multiprocessing.cpu_count() # numb of cores
+
+# The barycenters array contain the list of covd-barycenters, one per sample
 barycenter_list = Parallel(n_jobs=num_cores)(
     delayed(load_barycenters)(sample) for sample in tqdm(samples)
     )
@@ -103,6 +68,7 @@ for b in barycenter_list:
     barycenters[row,:] = b
     row += 1
 barycenters = barycenters[~np.all(barycenters == 0, axis=1)]
+
 
 cancer_type = []
 sample_id = []

@@ -30,6 +30,38 @@ from skimage import io
 
 warnings.filterwarnings('ignore')
 
+def scattered2d_tcga(df,filename):
+    fig = px.scatter(df,
+                     x="x", y="y",
+                     color="label",
+                     hover_name='sample',
+                     color_discrete_sequence=px.colors.qualitative.Plotly
+    )
+    fig.update_traces(marker=dict(size=2,opacity=1.0))
+    fig.update_layout(template='simple_white')
+    fig.update_layout(legend= {'itemsizing': 'constant'})
+    fig.write_html(filename+'.tcga.html', auto_open=False)
+    return
+
+def scattered3d_tcga(df,filename):
+    fig = px.scatter_3d(df,
+                        x="x", y="y", z="z",
+                        color="label",
+                        hover_name='sample',
+                        color_discrete_sequence=px.colors.qualitative.Plotly
+    )
+    fig.update_traces(marker=dict(size=2,opacity=1.0))
+    fig.update_layout(template='simple_white')
+    fig.update_layout(legend= {'itemsizing': 'constant'})
+    fig.write_html(filename+'.tcga.html', auto_open=False)
+    return
+
+# Return the barycenter of the covd for a given sample
+def load_barycenters(sample):
+    df = pd.read_pickle(sample)
+    barycenter = df[df['covd']==1]['descriptor'].mean()
+    return barycenter
+
 # Given the nonzero pixel values show the mask
 def show_patch_from_polygon(filename,x_list,y_list):
     if not (x_list and y_list):

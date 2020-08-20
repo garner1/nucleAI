@@ -17,11 +17,6 @@ import glob
 import h5py
 import pandas as pd
 import pickle
-import timeit
-import multiprocessing
-from joblib import Parallel, delayed
-from datetime import datetime
-from tqdm import tqdm
 
 import warnings
 warnings.filterwarnings('ignore')
@@ -29,15 +24,33 @@ warnings.filterwarnings('ignore')
 import umap
 import networkx as nx
 
-# In[33]:
-
-# samples = glob.glob('/media/garner1/hdd2/TCGA_polygons/*/*/*.freq10.covdNN50.features.pkl')
-# num_cores = multiprocessing.cpu_count() # numb of cores
 
 # Load the covd-barycenters for all samples
 outfile = 'covd_barycenters.npy'
 barycenters = np.load(outfile)
 print(barycenters.shape)
+
+# Load sample information
+samples = glob.glob('/media/garner1/hdd2/TCGA_polygons/*/*/*.freq10.covdNN50.features.pkl')
+cancer_type = []
+sample_id = []
+for sample in samples:
+    cancer_type.append( sample.split('/')[5] )
+    sample_id.append( os.path.basename(sample).split('.')[0] )
+
+# Map cancer type strings to integers
+mydict={}
+i = 0
+for item in cancer_type:
+    if(i>0 and item in mydict):
+        continue
+    else:    
+       i = i+1
+       mydict[item] = i
+
+k=[]
+for item in cancer_type:
+    k.append(mydict[item])
 
 #Generate the topological graph adjacency matrix A
 print('Generating the graph')
@@ -55,21 +68,26 @@ A = umap.umap_.fuzzy_simplicial_set(
     verbose=False
     )
 print('Done')
+attrs = { i : cancer_type[i] for i in range(0, len(cancer_type) ) }
+print('Drawing the graph')
 G = nx.from_scipy_sparse_matrix(A)
+nx.set_node_attributes(G, attrs,'labels') # setting node labels with cancer type
 edges = G.edges()
 weights = [G[u][v]['weight'] for u,v in edges]
 pos=nx.spring_layout(G)
-nx.draw(G, pos, edges=edges, width=weights,node_size=1)
+cmap=plt.cm.tab10
+vmin = min(k)
+vmax = max(k)
+nx.draw_networkx(G, pos, edges=edges, node_color=k,
+                 cmap=cmap, vmin=vmin, vmax=vmax,
+                 width=weights, node_size=1,
+                 labels=nx.get_node_attributes(G, 'labels') )
 
-# eset = [(u, v) for (u, v, d) in G.edges(data=True)]
-# weights = [d['weight'] for (u, v, d) in G.edges(data=True)]
-
-# nx.draw_networkx_nodes(G,pos,node_color='green',node_size=1)
-
-# unique_weights = list(set(weights))
-# for weight in unique_weights:
-#         weighted_edges = [(node1,node2) for (node1,node2,edge_attr) in G.edges(data=True) if edge_attr['weight']==weight]
-#         width = weight
-#         nx.draw_networkx_edges(G,pos,edgelist=weighted_edges,width=width)
-        
+# Generating a color bar
+# sm = plt.cm.ScalarMappable(cmap=cmap, norm=plt.Normalize(vmin=vmin, vmax=vmax))
+# sm.set_array([])
+# cbar = plt.colorbar(sm,orientation='horizontal',shrink=0.75)
+# cbar.ax.set_yticklabels(list(set(cancer_type)))
+plt.legend(scatterpoints=1)
 plt.savefig("graph.png", format="PNG")
+print('Done')

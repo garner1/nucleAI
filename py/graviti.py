@@ -40,7 +40,7 @@ def scattered2d_tcga(df,filename):
     fig.update_traces(marker=dict(size=2,opacity=1.0))
     fig.update_layout(template='simple_white')
     fig.update_layout(legend= {'itemsizing': 'constant'})
-    fig.write_html(filename+'.tcga.html', auto_open=False)
+    fig.write_image(filename+'.tcga.pdf', format='pdf')
     return
 
 def scattered3d_tcga(df,filename):

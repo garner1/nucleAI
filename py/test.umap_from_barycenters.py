@@ -19,7 +19,7 @@ import h5py
 import seaborn as sns
 import matplotlib.pyplot as plt
 import matplotlib
-#matplotlib.use('Agg')
+matplotlib.use('Agg') # to not display figure while using ssh 
 import plotly.graph_objects as go
 from plotly.graph_objs import *
 import plotly.express as px
@@ -59,8 +59,6 @@ samples = glob.glob('/media/garner1/hdd2/TCGA_polygons/*/*/*.freq10.covdNN50.fea
 # Load the covd-barycenters for all samples
 outfile = 'covd_barycenters.npy'
 barycenters = np.load(outfile)
-print(barycenters.shape)
-
 
 cancer_type = []
 sample_id = []
@@ -70,29 +68,39 @@ for sample in samples:
 
 print(len(cancer_type),set(cancer_type))
 
-# In[42]:
+# In[42]: UMAP representations
 
 reducer = umap.UMAP(n_components=2)
 embedding = reducer.fit_transform(barycenters)
 
-# Generate Data
 x = embedding[:,0]
 y = embedding[:,1]
 
 df = pd.DataFrame(dict(x=x, y=y, label=cancer_type, sample=sample_id))
 
-filename = 'umap.s'+str(df.shape[0])
-scattered2d_tcga(df,filename)
+groups = df.groupby('label')
 
-pca = PCA(n_components=2)
-principalComponents = pca.fit_transform(barycenters)
+# Plot
+fig, ax = plt.subplots(figsize=(10,10))
+ax.margins(0.05) # Optional, just adds 5% padding to the autoscaling
+for name, group in groups:
+    ax.plot(group.x, group.y, marker='o', linestyle='', ms=1, label=name)
+ax.legend()
+plt.title('UMAP projection of the TCGA dataset', fontsize=12)
+filename = 'umap.s'+str(df.shape[0])+'.pdf'
+plt.savefig(filename)
 
-x = principalComponents[:,0]
-y = principalComponents[:,1]
+# # In[42]: PCA representations
 
-df = pd.DataFrame(dict(x=x, y=y, label=cancer_type, sample=sample_id))
-filename = 'pca.s'+str(df.shape[0])
-scattered2d_tcga(df,filename)
+# pca = PCA(n_components=2)
+# principalComponents = pca.fit_transform(barycenters)
+
+# x = principalComponents[:,0]
+# y = principalComponents[:,1]
+
+# df = pd.DataFrame(dict(x=x, y=y, label=cancer_type, sample=sample_id))
+# filename = 'pca.s'+str(df.shape[0])
+# scattered2d_tcga(df,filename)
 
 
 

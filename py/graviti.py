@@ -14,6 +14,7 @@ import igraph
 import pandas as pd
 import plotly.graph_objects as go
 from plotly.graph_objs import *
+import plotly.express as px
 from numpy.linalg import norm
 
 from scipy.sparse import find

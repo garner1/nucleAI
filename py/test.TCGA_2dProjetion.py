@@ -77,30 +77,36 @@ x = embedding[:,0]
 y = embedding[:,1]
 
 df = pd.DataFrame(dict(x=x, y=y, label=cancer_type, sample=sample_id))
-
 groups = df.groupby('label')
-
 # Plot
 fig, ax = plt.subplots(figsize=(10,10))
 ax.margins(0.05) # Optional, just adds 5% padding to the autoscaling
 for name, group in groups:
-    ax.plot(group.x, group.y, marker='o', linestyle='', ms=1, label=name)
+    ax.plot(group.x, group.y, marker='o', linestyle='', ms=3, label=name, alpha=0.75)
 ax.legend()
 plt.title('UMAP projection of the TCGA dataset', fontsize=12)
 filename = 'umap.s'+str(df.shape[0])+'.pdf'
 plt.savefig(filename)
 
-# # In[42]: PCA representations
+# In[42]: PCA representations
 
-# pca = PCA(n_components=2)
-# principalComponents = pca.fit_transform(barycenters)
+pca = PCA(n_components=2)
+principalComponents = pca.fit_transform(barycenters)
 
-# x = principalComponents[:,0]
-# y = principalComponents[:,1]
+x = principalComponents[:,0]
+y = principalComponents[:,1]
 
-# df = pd.DataFrame(dict(x=x, y=y, label=cancer_type, sample=sample_id))
-# filename = 'pca.s'+str(df.shape[0])
-# scattered2d_tcga(df,filename)
+df = pd.DataFrame(dict(x=x, y=y, label=cancer_type, sample=sample_id))
+groups = df.groupby('label')
+# Plot
+fig, ax = plt.subplots(figsize=(10,10))
+ax.margins(0.05) # Optional, just adds 5% padding to the autoscaling
+for name, group in groups:
+    ax.plot(group.x, group.y, marker='o', linestyle='', ms=3, label=name, alpha=0.75)
+ax.legend()
+plt.title('PCA projection of the TCGA dataset', fontsize=12)
+filename = 'pca.s'+str(df.shape[0])+'.pdf'
+plt.savefig(filename)
 
 
 

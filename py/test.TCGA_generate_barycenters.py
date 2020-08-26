@@ -36,7 +36,7 @@ num_cores = multiprocessing.cpu_count() # numb of cores
 
 # The barycenters array contain the list of covd-barycenters, one per sample
 barycenter_list = Parallel(n_jobs=num_cores)(
-    delayed(load_barycenters)(sample) for sample in tqdm(samples)
+    delayed(load_barycenters)(sample) for sample in tqdm(samples) # load_barycenters evaluate the barycenter of the sample
     )
 
 barycenters = np.zeros((len(samples),pd.read_pickle(samples[0])['descriptor'].iloc[0].shape[0]))

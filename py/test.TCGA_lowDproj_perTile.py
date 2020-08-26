@@ -44,7 +44,7 @@ reducer = umap.UMAP(n_components=2)
 
 data = np.array(df_tissue[df_tissue['covd']==1].descriptor.tolist()) # generate the global array of tiles
 
-filename = 'df.'+cancer_ID+'.s'+str(df.shape[0])
+filename = 'df.'+cancer_ID+'.s'+str(df.shape[0])+'.pkl'
 df_tissue.to_pickle(filename)
 del(df_tissue) # to make space for parallelization over tissue types
 

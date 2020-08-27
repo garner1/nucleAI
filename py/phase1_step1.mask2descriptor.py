@@ -1,9 +1,5 @@
 #!/usr/bin/env python
 # coding: utf-8
-
-# In[ ]:
-
-
 import os
 import glob
 import pickle
@@ -30,16 +26,9 @@ from sklearn.neighbors import KDTree
 from sklearn.neighbors import NearestNeighbors
 
 
-# In[ ]:
-
-
 frequency = int(sys.argv[1]) # how often to pick a nuclei as a seed = size of the covd sample nuclei
 n_neighbors = int(sys.argv[2]) # the number of nuclei in each descriptor
 dirpath = sys.argv[3] # the full path to the sample directory
-
-
-# In[ ]:
-
 
 sample = os.path.basename(dirpath).split(sep='.')[0]; print(sample)
 
@@ -73,6 +62,8 @@ nbrs = NearestNeighbors(n_neighbors=n_neighbors, algorithm='kd_tree',n_jobs=-1).
 distances, indices = nbrs.kneighbors(X) 
 
 # Parallel generation of the local covd
+#morphometrics = df.columns[2:] 
+#data = df[morphometrics].to_numpy(dtype=np.float64)
 data = df.to_numpy(dtype=np.float64)
 
 s1, s2 = data[indices[fdf.index[0],:],:].shape
@@ -125,11 +116,10 @@ distance_from_barycenter = norm(delta,axis=1) # take the eucledean norm
 fdf.loc[nodes_with_covd,'heterogeneity'] = distance_from_barycenter
 fdf.loc[nodes_wo_covd,'heterogeneity'] = np.nan
 
-
-# In[ ]:
-
-
+# Store file
 filename = dirpath+'/'+sample+'.nuclei'+str(numb_nuclei)+'.numbCovd'+str(size)+'.freq'+str(frequency)+'.covdNN'+str(n_neighbors)+'.features.pkl'
+#filename = dirpath+'/'+sample+'.nuclei'+str(numb_nuclei)+'.numbCovd'+str(size)+'.freq'+str(frequency)+'.covdNN'+str(n_neighbors)+'.features_woCentroids.pkl'
+
 fdf.to_pickle(filename)
 
 

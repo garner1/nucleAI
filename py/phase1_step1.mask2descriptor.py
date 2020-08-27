@@ -62,8 +62,9 @@ nbrs = NearestNeighbors(n_neighbors=n_neighbors, algorithm='kd_tree',n_jobs=-1).
 distances, indices = nbrs.kneighbors(X) 
 
 # Parallel generation of the local covd
-morphometrics = df.columns[2:] 
-data = df[morphometrics].to_numpy(dtype=np.float64)
+#morphometrics = df.columns[2:] 
+#data = df[morphometrics].to_numpy(dtype=np.float64)
+data = df.to_numpy(dtype=np.float64)
 
 s1, s2 = data[indices[fdf.index[0],:],:].shape
 tensor = np.empty((size,s1,s2))
@@ -116,8 +117,9 @@ fdf.loc[nodes_with_covd,'heterogeneity'] = distance_from_barycenter
 fdf.loc[nodes_wo_covd,'heterogeneity'] = np.nan
 
 # Store file
-#filename = dirpath+'/'+sample+'.nuclei'+str(numb_nuclei)+'.numbCovd'+str(size)+'.freq'+str(frequency)+'.covdNN'+str(n_neighbors)+'.features.pkl'
-filename = dirpath+'/'+sample+'.nuclei'+str(numb_nuclei)+'.numbCovd'+str(size)+'.freq'+str(frequency)+'.covdNN'+str(n_neighbors)+'.features_woCentroids.pkl'
+filename = dirpath+'/'+sample+'.nuclei'+str(numb_nuclei)+'.numbCovd'+str(size)+'.freq'+str(frequency)+'.covdNN'+str(n_neighbors)+'.features.pkl'
+#filename = dirpath+'/'+sample+'.nuclei'+str(numb_nuclei)+'.numbCovd'+str(size)+'.freq'+str(frequency)+'.covdNN'+str(n_neighbors)+'.features_woCentroids.pkl'
+
 fdf.to_pickle(filename)
 
 

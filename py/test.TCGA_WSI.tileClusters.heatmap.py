@@ -48,18 +48,20 @@ y_umap = embedding[:,1]
 df['x_umap'] = x_umap
 df['y_umap'] = y_umap
 
-# Clustering
-from sklearn.cluster import KMeans
-mat_umap = df[['x_umap','y_umap']].values
-kmeans = KMeans(n_clusters=2, random_state=42).fit(mat_umap)
-df['UMAP_cluster_ID'] = kmeans.labels_
+# # Clustering
+# from sklearn.cluster import KMeans
+# mat_umap = df[['x_umap','y_umap']].values
+# kmeans = KMeans(n_clusters=2, random_state=42).fit(mat_umap)
+# df['UMAP_cluster_ID'] = kmeans.labels_
 
-ax = sns.scatterplot(x="centroid_x",
-                     y="centroid_y",
-                     hue="UMAP_cluster_ID",
-                     s=5,alpha=1.0,marker='.',
+ax = sns.scatterplot(x="x_umap",
+                     y="y_umap",
+                     #hue="UMAP_cluster_ID",
+                     s=10,alpha=1.0,
+                     marker='.',
                      data=df)
-plt.title('Heatmap of tile clusters ID', fontsize=12)
+#plt.title('Heatmap of tile clusters ID', fontsize=12)
 ax.invert_yaxis()
-filename = 'heatmap.s'+str(df.shape[0])+'.pdf'
+#filename = 'heatmap.s'+str(df.shape[0])+'.pdf'
+filename = str(sample)+'.pdf'
 plt.savefig(filename)

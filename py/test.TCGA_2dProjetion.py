@@ -46,11 +46,6 @@ import plotly
 import warnings
 warnings.filterwarnings('ignore')
 
-from sklearn.neighbors import KDTree
-from sklearn.neighbors import NearestNeighbors
-
-# In[33]:
-
 samples = glob.glob('/media/garner1/hdd2/TCGA_polygons/*/*/*.freq10.covdNN50.features.pkl')
 
 # Load the covd-barycenters for all samples
@@ -65,7 +60,7 @@ for sample in samples:
 
 print(len(cancer_type),set(cancer_type))
 
-# In[42]: UMAP representations
+# UMAP representations
 
 reducer = umap.UMAP(n_components=2)
 embedding = reducer.fit_transform(barycenters)

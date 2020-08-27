@@ -1,9 +1,6 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[1]:
-
-
 import sys  
 sys.path.insert(0, '../py')
 from graviti import *
@@ -26,17 +23,12 @@ from tqdm import tqdm
 import warnings
 warnings.filterwarnings('ignore')
 
-from sklearn.neighbors import KDTree
-from sklearn.neighbors import NearestNeighbors
-
-# In[33]:
-
 samples = glob.glob('/media/garner1/hdd2/TCGA_polygons/*/*/*.freq10.covdNN50.features.pkl')
 num_cores = multiprocessing.cpu_count() # numb of cores
 
 # The barycenters array contain the list of covd-barycenters, one per sample
 barycenter_list = Parallel(n_jobs=num_cores)(
-    delayed(load_barycenters)(sample) for sample in tqdm(samples)
+    delayed(load_barycenters)(sample) for sample in tqdm(samples) # load_barycenters evaluate the barycenter of the sample
     )
 
 barycenters = np.zeros((len(samples),pd.read_pickle(samples[0])['descriptor'].iloc[0].shape[0]))

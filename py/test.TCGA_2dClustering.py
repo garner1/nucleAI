@@ -46,6 +46,11 @@ import plotly
 import warnings
 warnings.filterwarnings('ignore')
 
+from sklearn.neighbors import KDTree
+from sklearn.neighbors import NearestNeighbors
+
+# In[33]:
+
 samples = glob.glob('/media/garner1/hdd2/TCGA_polygons/*/*/*.freq10.covdNN50.features.pkl')
 
 # Load the covd-barycenters for all samples
@@ -60,47 +65,34 @@ for sample in samples:
 
 print(len(cancer_type),set(cancer_type))
 
-# UMAP representations
+# UMAP representations and clustering
 
 reducer = umap.UMAP(n_components=2)
 embedding = reducer.fit_transform(barycenters)
 
-x = embedding[:,0]
-y = embedding[:,1]
+x_umap = embedding[:,0]
+y_umap = embedding[:,1]
 
-df = pd.DataFrame(dict(x=x, y=y, label=cancer_type, sample=sample_id))
-groups = df.groupby('label')
-# Plot
-fig, ax = plt.subplots(figsize=(10,10))
-ax.margins(0.05) # Optional, just adds 5% padding to the autoscaling
-for name, group in groups:
-    ax.plot(group.x, group.y, marker='o', linestyle='', ms=3, label=name, alpha=0.75)
-ax.legend()
-plt.title('UMAP projection of the TCGA dataset', fontsize=12)
-filename = 'umap.s'+str(df.shape[0])+'.pdf'
-plt.savefig(filename)
+df = pd.DataFrame(dict(x_umap=x_umap, y_umap=y_umap, label=cancer_type, sample=sample_id))
 
-# In[42]: PCA representations
+from sklearn.cluster import KMeans
+mat_umap = df[['x_umap','y_umap']].values
+kmeans = KMeans(n_clusters=3, random_state=42).fit(mat_umap)
+df['UMAP_cluster_ID'] = kmeans.labels_
+
+# PCA representations and clustering
 
 pca = PCA(n_components=2)
 principalComponents = pca.fit_transform(barycenters)
 
-x = principalComponents[:,0]
-y = principalComponents[:,1]
+x_pca = principalComponents[:,0]
+y_pca = principalComponents[:,1]
+df['x_pca'] = x_pca
+df['y_pca'] = y_pca
 
-df = pd.DataFrame(dict(x=x, y=y, label=cancer_type, sample=sample_id))
-groups = df.groupby('label')
-# Plot
-fig, ax = plt.subplots(figsize=(10,10))
-ax.margins(0.05) # Optional, just adds 5% padding to the autoscaling
-for name, group in groups:
-    ax.plot(group.x, group.y, marker='o', linestyle='', ms=3, label=name, alpha=0.75)
-ax.legend()
-plt.title('PCA projection of the TCGA dataset', fontsize=12)
-filename = 'pca.s'+str(df.shape[0])+'.pdf'
-plt.savefig(filename)
+mat_pca = df[['x_pca','y_pca']].values
+kmeans = KMeans(n_clusters=2, random_state=42).fit(mat_pca)
+df['PCA_cluster_ID'] = kmeans.labels_
 
-
-
-
-
+df.to_pickle("./df_clusters.pkl")
+print('Done!')

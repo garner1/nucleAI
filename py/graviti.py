@@ -145,7 +145,7 @@ def measure_patch_of_polygons(filename,features):
         try:
             regions = regionprops(label_mask, coordinates='rc')        
             if len(regions) > 0:
-                for i in keys:
+                for i in keys:  # loop over features
                     if i == 'centroid_x':
                         dicts[i] = np.rint(regions[0]['centroid'][1]+mini[1]).astype(int) # x-coord is column
                     elif i == 'centroid_y':

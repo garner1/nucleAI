@@ -1,16 +1,9 @@
 #!/usr/bin/env python
 # coding: utf-8
 
-# In[ ]:
-
-
 import sys
 sys.path.insert(0, '../py')
 from graviti import *
-
-
-# In[ ]:
-
 
 import numpy as np
 import scipy as sp
@@ -33,31 +26,19 @@ import random
 
 import pyvips
 
-
-# In[ ]:
-
-
-from __future__ import print_function
+# from __future__ import print_function
 
 import histomicstk as htk
 
 from matplotlib import pyplot as plt
 import matplotlib.patches as mpatches
-get_ipython().run_line_magic('matplotlib', 'inline')
-
-
-# In[ ]:
-
+#get_ipython().run_line_magic('matplotlib', 'inline')
 
 import timeit
 import multiprocessing
 from joblib import Parallel, delayed
 from datetime import datetime
 from tqdm import tqdm
-
-
-# In[ ]:
-
 
 def make_mask_from_polygons(filename,x_list,y_list):
     if not (x_list and y_list):
@@ -80,19 +61,11 @@ def make_mask_from_polygons(filename,x_list,y_list):
         #plt.savefig(filename+'.png')
     return mtx.todense()
 
-
-# In[ ]:
-
-
 def get_nuclear_view(imInput,maska,z):
     masked = np.multiply(imInput[:,:,z],maska)
     norows = masked[~np.all(masked == 0, axis=1)] #remove 0 rows
     arr = norows[:,~(norows == 0).all(0)] # remove 0 cols
     return arr 
-
-
-# In[ ]:
-
 
 # get the features 
 # consider as features x,y,r,g,b,delta_x([r,g,b])+delta_y([r,g,b]),delta_xx([r,g,b])+delta_yy([r,g,b])
@@ -115,10 +88,6 @@ def features_from_3d(arr_3d,color_dim): # color_dim is 0,1,2 for R,G,B
     delta_yy = ndi.convolve(arr_2d,dyy, output=np.float64, mode='nearest')
     
     return delta_x, delta_y, delta_xx, delta_yy
-
-
-# In[ ]:
-
 
 def parse_polygons_in_patch(filename):
     x_list = []
@@ -148,10 +117,6 @@ def parse_polygons_in_patch(filename):
         mask = make_mask_from_polygons(filename,x_list,y_list)
     return mask
 
-
-# In[ ]:
-
-
 def tile_from_svs(svs_filename,mask,x,y):
     
     format_to_dtype = {
@@ -176,10 +141,6 @@ def tile_from_svs(svs_filename,mask,x,y):
     #print(tile.height, tile.width, tile.bands, tile.format, tile.interpretation)
     #tile.write_to_file(svs_filename+'.'+str(x)+'.'+str(y)+'.jpg[Q=100]') # save as jpg file
     return np_3d
-
-
-# In[ ]:
-
 
 def covd_rgb(l,labels,imInput):
     maska = labels == l # get the mask
@@ -221,132 +182,36 @@ def covd_rgb(l,labels,imInput):
                                                     delta_xx[r,c],delta_yy[r,c]))
                     idx += 1
         return feature_data
-        
 
-
-# In[ ]:
-
-
-patches = glob.glob('/home/garner1/pipelines/nucleAI/data/TCGA-05-4244-*.*.svs.tar.gz/luad_polygon/*/*.csv')
-
-
-# In[ ]:
-
+sample_id = sys.argv[1]
+patches = glob.glob(sample_id+'/luad_polygon/*/*.csv')
 
 # Load the mask
 svs_filename = "/home/garner1/pipelines/nucleAI/data/TCGA-05-4244-01Z-00-DX1.d4ff32cd-38cf-40ea-8213-45c2b100ac01.svs"
 
 num_cores = multiprocessing.cpu_count() # numb of cores
 
-for patch in patches[:2]:
-    patch_name = patch.split('/')[9:]
+for patch in patches[:]:
+    patch_name = patch.split('/')[-1]; print( patch_name )
     if not pd.read_csv(patch).empty: 
-        print('The patch is not empty',patch_name[0])
-        x = patch_name[0].split('_')[0]
-        y = patch_name[0].split('_')[1]
-        #print(x,y)
+        #print('The patch is not empty',patch_name)
+        x = patch_name.split('_')[0]
+        y = patch_name.split('_')[1]
+
         #plt.imshow(imInput)
+
         mask = parse_polygons_in_patch(patch)
-        
         labels, num = label(mask, return_num=True, connectivity=1) # connectivity has to be 1 otherwise different mask are placed together
         
         imInput = tile_from_svs(svs_filename,mask,x,y)
-        
-        generated_covds = Parallel(n_jobs=num_cores)(delayed(covd_rgb)(l, labels,imInput) 
-                                                     for l in tqdm(random.sample(range(1,num+1),1000)))
+
+        sample_size = min(int(num/10),10)
+        generated_covds = Parallel(n_jobs=num_cores)(delayed(covd_rgb)(l, labels,imInput) for l in tqdm(random.sample(range(1,num+1),sample_size)))
+
+        # generated_covds = Parallel(n_jobs=num_cores)( delayed(covd_rgb)(l, labels,imInput) for l in tqdm(range(1,num+1)) )
+
         filename = patch+'.intensity_features.pkl' # name of the intensity features output file
         outfile = open(filename,'wb')
         pickle.dump(generated_covds,outfile)
         outfile.close()
-
-
-# In[ ]:
-
-
-infile = open(filename,'rb')
-intensity_features = pickle.load(infile)
-infile.close()
-
-
-# In[ ]:
-
-
-data = np.array([np.real(sp.linalg.logm(np.cov(f,rowvar=False))).flatten() for f in intensity_features if f is not None])
-data.shape
-
-
-# In[ ]:
-
-
-import umap
-reducer = umap.UMAP(n_components=2,min_dist=0,n_neighbors=10)
-embedding = reducer.fit_transform(data)
-x = embedding[:,0]
-y = embedding[:,1]
-df_plot = pd.DataFrame(dict(x=x, y=y))
-import seaborn as sns; sns.set()
-fig, ax = plt.subplots(figsize=(10,10))
-ax = sns.scatterplot(x="x", y="y", data=df_plot)
-
-
-# In[ ]:
-
-
-
-
-
-# In[ ]:
-
-
-
-
-
-# In[ ]:
-
-
-feature_data = np.zeros((arr_3d.shape[0]*arr_3d.shape[1],9))
-idx = 0
-for r in range(arr_3d.shape[0]):
-    for c in range(arr_3d.shape[1]):
-        feature_data[idx,:] = np.hstack((r,c,
-                                    arr_3d[r,c,0],arr_3d[r,c,1],arr_3d[r,c,2],
-                                    delta_x[r,c],delta_y[r,c],
-                                    delta_xx[r,c],delta_yy[r,c]))
-        idx += 1
-
-print(np.corrcoef(feature_data,rowvar=False)) # get the normalized covariace matrix
-print(np.cov(feature_data,rowvar=False)) # get the covariace matrix
-
-
-# In[ ]:
-
-
-# create stain to color map
-stain_color_map = htk.preprocessing.color_deconvolution.stain_color_map
-print('stain_color_map:', stain_color_map, sep='\n')
-
-# specify stains of input image
-stains = ['hematoxylin',  # nuclei stain
-          'eosin',        # cytoplasm stain
-          'null']         # set to null if input contains only two stains
-
-# create stain matrix
-W = np.array([stain_color_map[st] for st in stains]).T
-
-# perform standard color deconvolution
-imDeconvolved = htk.preprocessing.color_deconvolution.color_deconvolution(imInput, W)
-
-# Display results
-for i in [0]:#, 1:
-    plt.figure()
-    plt.imshow(imDeconvolved.Stains[:, :, i])
-    _ = plt.title(stains[i], fontsize=titlesize)
-
-
-# In[ ]:
-
-
-plt.figure()
-masked = np.multiply(imDeconvolved.Stains[:, :, 0],~mask)
-plt.imshow(masked>1)
 

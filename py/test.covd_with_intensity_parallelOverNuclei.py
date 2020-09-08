@@ -1,6 +1,9 @@
 #!/usr/bin/env python
 # coding: utf-8
 
+# from __future__ import print_function
+#get_ipython().run_line_magic('matplotlib', 'inline')
+
 import sys
 sys.path.insert(0, '../py')
 from graviti import *
@@ -25,14 +28,10 @@ import timeit
 import random
 
 import pyvips
-
-# from __future__ import print_function
-
-import histomicstk as htk
+#import histomicstk as htk
 
 from matplotlib import pyplot as plt
 import matplotlib.patches as mpatches
-#get_ipython().run_line_magic('matplotlib', 'inline')
 
 import timeit
 import multiprocessing
@@ -183,12 +182,14 @@ def covd_rgb(l,labels,imInput):
                     idx += 1
         return feature_data
 
-sample_id = sys.argv[1]
-patches = glob.glob(sample_id+'/luad_polygon/*/*.csv')
 
 # Load the mask
-svs_filename = "/home/garner1/pipelines/nucleAI/data/TCGA-05-4244-01Z-00-DX1.d4ff32cd-38cf-40ea-8213-45c2b100ac01.svs"
+# print( glob.glob('/media/garner1/hdd2/TCGA_polygons/BRCA/'+os.path.basename(svs_filename)+'.tar.gz/*.gz') )
+#"/home/garner1/pipelines/nucleAI/data/TCGA-05-4244-01Z-00-DX1.d4ff32cd-38cf-40ea-8213-45c2b100ac01.svs"
+sample_id = sys.argv[1]
+svs_filename = sys.argv[2]; print( os.path.basename(svs_filename) )
 
+patches = glob.glob(sample_id+'/*_polygon/*/*.csv')
 num_cores = multiprocessing.cpu_count() # numb of cores
 
 for patch in patches[:]:
@@ -206,9 +207,9 @@ for patch in patches[:]:
         imInput = tile_from_svs(svs_filename,mask,x,y)
 
         sample_size = min(int(num/10),10)
-        generated_covds = Parallel(n_jobs=num_cores)(delayed(covd_rgb)(l, labels,imInput) for l in tqdm(random.sample(range(1,num+1),sample_size)))
+        # generated_covds = Parallel(n_jobs=num_cores)(delayed(covd_rgb)(l, labels,imInput) for l in tqdm(random.sample(range(1,num+1),sample_size)))
 
-        # generated_covds = Parallel(n_jobs=num_cores)( delayed(covd_rgb)(l, labels,imInput) for l in tqdm(range(1,num+1)) )
+        generated_covds = Parallel(n_jobs=num_cores)( delayed(covd_rgb)(l, labels,imInput) for l in tqdm(range(1,num+1)) )
 
         filename = patch+'.intensity_features.pkl' # name of the intensity features output file
         outfile = open(filename,'wb')

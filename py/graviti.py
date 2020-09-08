@@ -137,7 +137,7 @@ def measure_patch_of_polygons(filename,features):
         mask = np.zeros(tuple(np.ceil(np.max(poly,axis=0) - np.min(poly,axis=0)).astype(int))) # build an empty mask spanning the support of the polygon
         rr, cc = polygon(poly[:, 0], poly[:, 1], mask.shape) # get the nonzero mask locations
         mask[rr, cc] = 1 # nonzero pixel entries
-        label_mask = label(mask)
+        label_mask = label(mask,connectivity=1) # connectivity has to be 1 otherwise there will be masks from diff nuclei touching on the diagonals
         
         # calculate morphometrics
         dicts = {}
@@ -273,7 +273,7 @@ def covd_parallel(node,data):
         iu1 = np.triu_indices(Lr.shape[1])
         vec = Lr[iu1]
 
-        # -Tr(C/d*Log(C/d))
+        # -Tr(C/d*Log(C/d)) =-Tr(C*Log(C))/d - Tr(C*log(d))/d = -Tr(C*Log(C))/d - Dim*log(d)/d
         d = np.trace(C)
         entropy = -1.0*( np.trace(np.dot(C,Lr)) - C.shape[0]*np.log(d) )/d
         

@@ -141,7 +141,7 @@ def tile_from_svs(svs_filename,mask,x,y):
     #tile.write_to_file(svs_filename+'.'+str(x)+'.'+str(y)+'.jpg[Q=100]') # save as jpg file
     return np_3d
 
-def covd_rgb(l,labels,imInput,regions):
+def covd_rgb(l,labels,imInput,regions,x,y):
     maska = labels == l # get the mask
     if maska.nonzero()[0].shape[0] > 99: # condition on mask size to remove small nuclei
         # Repeat over the third axis of the image
@@ -180,8 +180,11 @@ def covd_rgb(l,labels,imInput,regions):
                                                     delta_x[r,c],delta_y[r,c],
                                                     delta_xx[r,c],delta_yy[r,c]))
                     idx += 1
-        return regions[l-1].centroid,feature_data
-
+                    
+        cx = regions[l-1].centroid[0] + np.float(x) # -1 because the list of regions is 0-based
+        cy = regions[l-1].centroid[1] + np.float(y) # -1 because the list of regions is 0-based
+        
+        return tuple((cx,cy)),feature_data 
 
 # Load the mask
 # print( glob.glob('/media/garner1/hdd2/TCGA_polygons/BRCA/'+os.path.basename(svs_filename)+'.tar.gz/*.gz') )
@@ -210,7 +213,7 @@ for patch in patches[:]:
         sample_size = min(int(num/10),10)
         # generated_covds = Parallel(n_jobs=num_cores)(delayed(covd_rgb)(l, labels,imInput) for l in tqdm(random.sample(range(1,num+1),sample_size)))
         list_of_labels = [r.label for r in regions]
-        generated_covds = Parallel(n_jobs=num_cores)( delayed(covd_rgb)(l, labels,imInput, regions) for l in tqdm(list_of_labels) )
+        generated_covds = Parallel(n_jobs=num_cores)( delayed(covd_rgb)(l, labels,imInput, regions,x,y) for l in tqdm(list_of_labels) )
 
         filename = patch+'.intensity_features.pkl' # name of the intensity features output file
         outfile = open(filename,'wb')

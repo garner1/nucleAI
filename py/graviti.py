@@ -197,6 +197,38 @@ def process_patch(patch,frac,svs_filename): # process a given fraction of nuclei
             outfile.close()
             return
 
+def process_patch_with_intensity(patch,frac,svs_filename): # process a given fraction of nuclei in the patch
+    #print(os.path.basename(patch))
+    patch_name = os.path.basename(patch)
+    features = ['cx','cy','area','eccentricity','orientation','perimeter','solidity','intensity_R','intensity_G','intensity_B']
+    if not pd.read_csv(patch).empty: 
+        x = patch_name.split('_')[0]
+        y = patch_name.split('_')[1]
+        # plt.imshow(imInput)
+        mask = parse_polygons_in_patch(patch,frac)
+        if mask is not None:
+            labels, num = label(mask, return_num=True, connectivity=1) # connectivity has to be 1 
+            imInput = tile_from_svs(svs_filename,mask,x,y)
+            try:
+                regions_R = regionprops(labels,intensity_image=imInput[:,:,0])
+                regions_G = regionprops(labels,intensity_image=imInput[:,:,1])
+                regions_B = regionprops(labels,intensity_image=imInput[:,:,2])
+                morphometry = [(n.centroid[1]+float(x),n.centroid[0]+float(y),n.area,n.eccentricity,n.orientation,n.perimeter,n.solidity) for n in regions_R]
+                intensity_R = [np.sum(n.intensity_image) for n in regions_R]
+                intensity_G = [np.sum(n.intensity_image) for n in regions_G]
+                intensity_B = [np.sum(n.intensity_image) for n in regions_B]
+                
+            except ValueError:  #raised if array is empty.
+                pass
+            df = pd.DataFrame(morphometry, columns =['cx','cy','area','eccentricity','orientation','perimeter','solidity'])
+            df['intensity_R'] = intensity_R
+            df['intensity_G'] = intensity_G
+            df['intensity_B'] = intensity_B
+
+            filename = patch+'.morphometrics+intensity.pkl' # name of the intensity features output file
+            df.to_pickle(filename)
+    return
+
 def make_mask_from_polygons(filename,x_list,y_list):
     if not (x_list and y_list):
         pass
@@ -328,9 +360,9 @@ def measure_patch_of_polygons(filename,features):
         
         # calculate morphometrics
         dicts = {}
-        keys = features
+        keys = features         
         try:
-            regions = regionprops(label_mask, coordinates='rc')        
+            regions = regionprops(label_mask, coordinates='rc')       
             if len(regions) > 0:
                 for i in keys:  # loop over features
                     if i == 'centroid_x':
@@ -347,7 +379,6 @@ def measure_patch_of_polygons(filename,features):
         data = data.append(new_df, ignore_index=True)
     data.to_pickle(filename+'.morphometrics.pkl')
     return 
-
 
 # Plotly contour visualization
 def plotlyContourPlot(fdf,filename):

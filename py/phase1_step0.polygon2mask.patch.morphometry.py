@@ -20,7 +20,7 @@ import math
 import timeit
 from datetime import datetime
 
-features = ['centroid_x','centroid_y','area','eccentricity','orientation','perimeter','solidity']
+features = ['centroid_x','centroid_y','area','eccentricity','orientation','perimeter','solidity','intensity_image']
 
 patch = sys.argv[1] #~/Work/dataset/tcga_polygons/LUAD/*.gz/*.gz
 

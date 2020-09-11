@@ -30,15 +30,16 @@ from joblib import Parallel, delayed
 from datetime import datetime
 from tqdm import tqdm
 
-
 sample_id = sys.argv[1]
-svs_filename = sys.argv[2]; print( os.path.basename(svs_filename) )
+svs_filename = sys.argv[2];
+
+print( os.path.basename(svs_filename) )
 
 patches = glob.glob(sample_id+'/*_polygon/*/*.csv')
 
 num_cores = multiprocessing.cpu_count() # numb of cores
 
 # fraction of nuclei to be processed hardcoded to 0.1
-generated_covds = Parallel(n_jobs=num_cores)( delayed(process_patch)(p,0.1,svs_filename) for p in patches )
+generated_covds = Parallel(n_jobs=num_cores)( delayed(process_patch_with_intensity)(p,0.1,svs_filename) for p in tqdm(patches) )
 
 

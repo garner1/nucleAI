@@ -48,7 +48,7 @@ for patch in patches[:]:
     features.append(pd.read_pickle(patch))
 df_data = pd.concat(features)
 print(df_data.shape)
-
+print(df_data.head())
 # list_of_features = random.sample(intensity_features,10000)
 # pos = np.array([f[0] for f in intensity_features if f is not None])  
 # print(np.max(pos,axis=0))

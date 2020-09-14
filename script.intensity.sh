@@ -8,24 +8,26 @@ dirSample='/media/garner1/hdd2/TCGA_polygons/'$cancer_type'/'$samplename'.*.tar.
 
 echo ${cancer_type} $samplename #$polygons $dirSample
 
-if test -d $dirSample; then
-    echo "Uncompress"
-    cd $dirSample
-    tar -xf *.gz -C $PWD
+# if test -d $dirSample; then
+#     echo "Uncompress"
+#     cd $dirSample
+#     tar -xf *.gz -C $PWD
 
-    echo "Generate the intensity features"
-    cp $svsSample ~/local.svs
-    /usr/local/share/anaconda3/bin/ipython /home/garner1/Work/pipelines/nucleAI/py/test.covd_with_intensity_parallelOverPatches.py $dirSample ~/local.svs #$svsSample 
+#     echo "Generate the intensity features"
+#     cp $svsSample ~/local.svs
+#     /usr/local/share/anaconda3/bin/ipython /home/garner1/Work/pipelines/nucleAI/py/test.covd_with_intensity_parallelOverPatches.py $dirSample ~/local.svs #$svsSample 
 
-    mkdir -p /home/garner1/Work/pipelines/nucleAI/data/${samplename}
-    mv ${dirSample}/*_polygon/${samplename}.*/*.morphometrics+intensity.pkl /home/garner1/Work/pipelines/nucleAI/data/${samplename}
+#     mkdir -p /home/garner1/Work/pipelines/nucleAI/data/${samplename}
+#     mv ${dirSample}/*_polygon/${samplename}.*/*.morphometrics+intensity.pkl /home/garner1/Work/pipelines/nucleAI/data/${samplename}
 
-    rm ~/local.svs
+#     rm ~/local.svs
 
-    echo "Clean up"
-    parallel "rm {}" ::: ${dirSample}/*_polygon/TCGA-*.svs/*-features.csv
-fi
+#     echo "Clean up"
+#     parallel "rm {}" ::: ${dirSample}/*_polygon/TCGA-*.svs/*-features.csv
+# fi
 
+# After the first part has finished run this
+for sample in `ls data`; do /usr/local/share/anaconda3/bin/ipython py/phase1_step1.mask2descriptor.py 10 50 data/${sample}; done
 
 
 

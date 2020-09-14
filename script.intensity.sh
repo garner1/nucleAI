@@ -27,7 +27,7 @@ echo ${cancer_type} $samplename #$polygons $dirSample
 # fi
 
 # After the first part has finished run this
-for sample in `ls data`; do /usr/local/share/anaconda3/bin/ipython py/phase1_step1.mask2descriptor.py 10 50 data/${sample}; done
+for sample in `ls data`; do ipython py/phase1_step1.mask2descriptor.py 10 50 data/${sample}; done
 
 
 

@@ -15,7 +15,7 @@ echo ${cancer_type} $samplename #$polygons $dirSample
 
 #     echo "Generate the intensity features"
 #     cp $svsSample ~/local.svs
-#     /usr/local/share/anaconda3/bin/ipython /home/garner1/Work/pipelines/nucleAI/py/test.covd_with_intensity_parallelOverPatches.py $dirSample ~/local.svs #$svsSample 
+#     ipython /home/garner1/Work/pipelines/nucleAI/py/test.covd_with_intensity_parallelOverPatches.py $dirSample ~/local.svs #$svsSample 
 
 #     mkdir -p /home/garner1/Work/pipelines/nucleAI/data/${samplename}
 #     mv ${dirSample}/*_polygon/${samplename}.*/*.morphometrics+intensity.pkl /home/garner1/Work/pipelines/nucleAI/data/${samplename}
@@ -27,7 +27,7 @@ echo ${cancer_type} $samplename #$polygons $dirSample
 # fi
 
 # After the first part has finished run this
-for sample in `ls data`; do /usr/local/share/anaconda3/bin/ipython py/phase1_step1.mask2descriptor.py 10 50 data/${sample}; done
+for sample in `ls data`; do ipython py/phase1_step1.mask2descriptor.py 10 50 data/${sample}; done
 
 
 

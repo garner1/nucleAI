@@ -333,7 +333,7 @@ def show_patches_parallel(filename):
         show_patch_from_polygon(filename,x_list,y_list)
     return
 
-def measure_patch_of_polygons(filename,features): 
+def measure_patch_of_polygons(filename,features,outdir): 
     # given the patch filename containing the polygon coordinates, generate morphometrics
     # Polygons are encoded in cartesian coord system (x,y) with the origin at the top-left corner
     # the first 2 integers in the polygon filename give the (x,y) coord of the top-left corner of the patch
@@ -365,9 +365,9 @@ def measure_patch_of_polygons(filename,features):
             regions = regionprops(label_mask, coordinates='rc')       
             if len(regions) > 0:
                 for i in keys:  # loop over features
-                    if i == 'centroid_x':
+                    if i == 'cx':
                         dicts[i] = np.rint(regions[0]['centroid'][1]+mini[1]).astype(int) # x-coord is column
-                    elif i == 'centroid_y':
+                    elif i == 'cy':
                         dicts[i] = np.rint(regions[0]['centroid'][0]+mini[0]).astype(int) # y-coord is row
                     else:
                         dicts[i] = regions[0][i]
@@ -377,7 +377,7 @@ def measure_patch_of_polygons(filename,features):
         # update morphometrics data 
         new_df = pd.DataFrame(dicts, index=[0])
         data = data.append(new_df, ignore_index=True)
-    data.to_pickle(filename+'.morphometrics.pkl')
+    data.to_pickle(outdir+'/'+os.path.basename(filename)+'.morphometrics.connectivity_1.pkl')
     return 
 
 # Plotly contour visualization

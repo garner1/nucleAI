@@ -29,12 +29,19 @@ from sklearn.neighbors import NearestNeighbors
 frequency = int(sys.argv[1]) # how often to pick a nuclei as a seed = size of the covd sample nuclei
 n_neighbors = int(sys.argv[2]) # the number of nuclei in each descriptor
 dirpath = sys.argv[3] # the full path to the sample directory with feature data
-
-sample = os.path.basename(dirpath).split(sep='.')[0]; print(sample)
+sample = dirpath.split('/')
+tissue = sample[5]
+samplename = sample[6].split('.')[0]
+featuredir = '/home/garner1/Work/pipelines/nucleAI/data/features_wo_intensity/'+tissue+'/'+samplename
+outdir = '/home/garner1/Work/pipelines/nucleAI/data/covds_wo_intensity/'+tissue+'/'+samplename
+try:
+    os.stat(outdir)
+except:
+    os.makedirs(outdir,exist_ok=True)    
 
 print('Loading the data')
 df = pd.DataFrame()
-fovs = glob.glob(dirpath+'/*.pkl')
+fovs = glob.glob(featuredir+'/*.morphometrics.connectivity_1.pkl')
 
 print('There are '+str(len(fovs))+' FOVs')
 for fov in fovs: # for each fov
@@ -101,8 +108,9 @@ if numb_nuclei > 100:
     # Update the dataframe
     fdf.loc[nodes_with_covd,'heterogeneity'] = distance_from_barycenter
     fdf.loc[nodes_wo_covd,'heterogeneity'] = np.nan
+
     # Store file
-    filename = 'BRCA_covds_wo_intensity/'+sample+'.nuclei'+str(numb_nuclei)+'.numbCovd'+str(size)+'.freq'+str(frequency)+'.covdNN'+str(n_neighbors)+'.features.pkl'
+    filename = outdir+'/nuclei'+str(numb_nuclei)+'.numbCovd'+str(size)+'.freq'+str(frequency)+'.covdNN'+str(n_neighbors)+'.pkl'
     fdf.to_pickle(filename)
 
 

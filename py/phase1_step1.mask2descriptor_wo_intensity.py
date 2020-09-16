@@ -29,11 +29,13 @@ from sklearn.neighbors import NearestNeighbors
 frequency = int(sys.argv[1]) # how often to pick a nuclei as a seed = size of the covd sample nuclei
 n_neighbors = int(sys.argv[2]) # the number of nuclei in each descriptor
 dirpath = sys.argv[3] # the full path to the sample directory with feature data
+
 sample = dirpath.split('/')
-tissue = sample[5]
-samplename = sample[6].split('.')[0]
+tissue = sample[-2]
+samplename = sample[-1].split('.')[0]
 featuredir = '/home/garner1/Work/pipelines/nucleAI/data/features_wo_intensity/'+tissue+'/'+samplename
 outdir = '/home/garner1/Work/pipelines/nucleAI/data/covds_wo_intensity/'+tissue+'/'+samplename
+
 try:
     os.stat(outdir)
 except:
@@ -41,8 +43,7 @@ except:
 
 print('Loading the data')
 df = pd.DataFrame()
-fovs = glob.glob(featuredir+'/*.morphometrics.connectivity_1.pkl')
-
+fovs = glob.glob(featuredir+'/*.pkl')
 print('There are '+str(len(fovs))+' FOVs')
 for fov in fovs: # for each fov
     data = pd.read_pickle(fov)[['cx','cy','area','eccentricity','orientation','perimeter','solidity']] # do not consider intensities

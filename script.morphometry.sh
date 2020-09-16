@@ -13,8 +13,8 @@ parallel "/usr/local/share/anaconda3/bin/ipython /home/garner1/Work/pipelines/nu
 echo "Clean up"
 parallel "rm {}" ::: ${dirSample}/*_polygon/TCGA-*.svs/*-features.csv
 
-echo "Generate the descriptors"
-/usr/local/share/anaconda3/bin/ipython /home/garner1/Work/pipelines/nucleAI/py/phase1_step1.mask2descriptor_wo_intensity.py 10 50 ${dirSample} # !!! adapt to tissue !!!!
+# echo "Generate the descriptors"
+# /usr/local/share/anaconda3/bin/ipython /home/garner1/Work/pipelines/nucleAI/py/phase1_step1.mask2descriptor_wo_intensity.py 10 50 ${dirSample} # !!! adapt to tissue !!!!
 
 
 

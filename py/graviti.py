@@ -30,7 +30,7 @@ import pickle
 from skimage.draw import polygon
 from skimage.measure import label, regionprops#, regionprops_table
 from skimage import io
-import pyvips
+#import pyvips
 
 warnings.filterwarnings('ignore')
 

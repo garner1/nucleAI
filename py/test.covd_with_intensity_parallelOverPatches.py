@@ -40,6 +40,6 @@ patches = glob.glob(sample_id+'/*_polygon/*/*.csv')
 num_cores = multiprocessing.cpu_count() # numb of cores
 
 # fraction of nuclei to be processed hardcoded to 0.1
-generated_covds = Parallel(n_jobs=num_cores)( delayed(process_patch_with_intensity)(p,0.1,svs_filename) for p in tqdm(patches) )
+generated_covds = Parallel(n_jobs=num_cores)( delayed(process_patch_with_intensity)(p,1,svs_filename) for p in tqdm(patches) )
 
 

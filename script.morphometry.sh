@@ -12,12 +12,12 @@ then
 fi
 
 echo "Generate the masks"
-parallel "[[ -f {}.morphometrics.pkl ]] || /usr/local/share/anaconda3/bin/ipython /home/garner1/Work/pipelines/nucleAI/py/test.polygon2mask.patch.morphometry.py {}" ::: ${dirSample}/*_polygon/TCGA-*.svs/*-features.csv
+parallel "[[ -f {}.morphometrics.pkl ]] || ipython /home/garner1/Work/pipelines/nucleAI/py/test.polygon2mask.patch.morphometry.py {}" ::: ${dirSample}/*_polygon/TCGA-*.svs/*-features.csv
 
 if [ ! -f ${dirSample}/*.freq*.covdNN*.features.pkl ]
 then
     echo "Generate the descriptors"
-    /usr/local/share/anaconda3/bin/ipython /home/garner1/Work/pipelines/nucleAI/py/test.mask2descriptor.py 10 50 ${dirSample}
+    ipython py/test.mask2descriptor.py 10 50 ${dirSample}
 fi
 
 echo "Clean up"

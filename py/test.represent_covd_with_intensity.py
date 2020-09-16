@@ -40,21 +40,18 @@ import seaborn as sns; sns.set()
 
 from sklearn.cluster import KMeans
 
-patches = glob.glob('/media/garner1/hdd2/TCGA_polygons/BRCA/TCGA-A2-A0CK-01Z-00-DX1.*.svs.tar.gz/brca_polygon/TCGA-A2-A0CK-01Z-00-DX1.*.svs/*.intensity_features.pkl')
+patches = glob.glob('../data/TCGA-4H-AAAK-01Z-00-DX1/*.pkl')
 
 reducer = umap.UMAP(n_components=2,min_dist=0,n_neighbors=10)
-intensity_features = []
+features = []
 for patch in patches[:]:
-    #print(patch)
-    infile = open(patch,'rb')
-    lista = pickle.load(infile)
-    intensity_features.extend(lista)
-    infile.close()
-
-print(len(intensity_features))
-list_of_features = random.sample(intensity_features,10000)
-pos = np.array([f[0] for f in intensity_features if f is not None])  
-print(np.max(pos,axis=0))
+    features.append(pd.read_pickle(patch))
+df_data = pd.concat(features)
+print(df_data.shape)
+print(df_data.head())
+# list_of_features = random.sample(intensity_features,10000)
+# pos = np.array([f[0] for f in intensity_features if f is not None])  
+# print(np.max(pos,axis=0))
 # data_cov = np.array([np.real(sp.linalg.logm(np.cov(f[1],rowvar=False))).flatten() for f in list_of_features if f is not None])  
 # data_corrcoef = np.array([np.real(sp.linalg.logm(np.corrcoef(f[1],rowvar=False))).flatten() for f in list_of_features if f is not None])  
 

@@ -27,6 +27,7 @@ if test -d $dirSample; then
 fi
 
 # After the first part has finished run this
+for s in `ls -d ../data/features/BRCA/TCGA-*`; do ~/anaconda3/bin/ipython test.mask2descriptor.py 10 50 ${s}; done
 
 #/usr/local/share/anaconda3/bin/ipython py/phase1_step1.mask2descriptor_wo_intensity.py 10 50 data/features_wo_intensity/${cancer_type}/${samplename}
 # for sample in `ls data`; do /usr/local/share/anaconda3/bin/ipython py/phase1_step1.mask2descriptor_with_intensity.py 10 50 data/${sample}; done

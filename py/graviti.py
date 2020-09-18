@@ -527,6 +527,19 @@ def covd_parallel(node,data):
         return (node,vec,covd_ok,entropy)
     return
 
+def covd_parallel_with_intensity(node,data):
+    mat = data[node,:,:].copy()
+    mat_with_intensity = mat; mat_wo_intensity = mat[:,np.r_[0:7,-1]].copy()
+    C_with_intensity = np.corrcoef(mat_with_intensity,rowvar=False); C_wo_intensity = np.corrcoef(mat_wo_intensity,rowvar=False)
+    try:
+        L_with_intensity = linalg.logm(C_with_intensity); L_wo_intensity = linalg.logm(C_wo_intensity)
+        Lr_with_intensity = np.real_if_close(L_with_intensity); Lr_wo_intensity = np.real_if_close(L_wo_intensity)
+        iu1_with_intensity = np.triu_indices(Lr_with_intensity.shape[1]); iu1_wo_intensity = np.triu_indices(Lr_wo_intensity.shape[1])
+        vec_with_intensity = Lr_with_intensity[iu1_with_intensity]; vec_wo_intensity = Lr_wo_intensity[iu1_wo_intensity]
+        return (node,vec_with_intensity,vec_wo_intensity)
+    except Exception:
+        return (node,None,None)
+  
 def covd_parallel_sparse(node,data,nn_idx):
     mat = data[nn_idx[node,:],:]
     C = np.corrcoef(mat.astype(float),rowvar=False) # compute correlation matrix to account for std

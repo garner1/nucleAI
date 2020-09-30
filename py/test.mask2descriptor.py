@@ -25,7 +25,6 @@ warnings.filterwarnings('ignore')
 from sklearn.neighbors import KDTree
 from sklearn.neighbors import NearestNeighbors
 
-
 frequency = int(sys.argv[1]) # how often to pick a nuclei as a seed = size of the covd sample nuclei
 n_neighbors = int(sys.argv[2]) # the number of nuclei in each descriptor
 dirpath = sys.argv[3] # the full path to the sample directory with feature data

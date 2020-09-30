@@ -31,7 +31,8 @@ for s in `ls -d data/features/BRCA/TCGA-*`
 do
     sample_id=`echo "${s}" | cut -d '/' -f4`
     # If covds data is not present run the script
-    [ -f data/covds/BRCA/${sample_id}/*.pkl ] || ~/anaconda3/bin/ipython py/test.mask2descriptor.py 10 50 ${s}
+    # [ -f data/covds/BRCA/${sample_id}/*.pkl ] || ~/anaconda3/bin/ipython py/test.mask2descriptor.py 10 50 ${s}
+    [ -f data/covds/BRCA/${sample_id}/*.pkl ] || /usr/local/share/anaconda3/bin/ipython py/test.mask2descriptor.py 10 50 ${s}
 done
 
 #/usr/local/share/anaconda3/bin/ipython py/phase1_step1.mask2descriptor_wo_intensity.py 10 50 data/features_wo_intensity/${cancer_type}/${samplename}

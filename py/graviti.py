@@ -30,7 +30,7 @@ import pickle
 from skimage.draw import polygon
 from skimage.measure import label, regionprops#, regionprops_table
 from skimage import io
-#import pyvips
+import pyvips
 
 warnings.filterwarnings('ignore')
 
@@ -191,7 +191,7 @@ def process_patch(patch,frac,svs_filename): # process a given fraction of nuclei
                 if nuc_pos is not None:
                     generated_covds.append(tuple((nuc_pos,nuc_featureData)))
                 
-            filename = patch+'.intensity_features.pkl' # name of the intensity features output file
+            filename = patch+'.pkl' # name of the intensity features output file
             outfile = open(filename,'wb')
             pickle.dump(generated_covds,outfile)
             outfile.close()
@@ -210,10 +210,11 @@ def process_patch_with_intensity(patch,frac,svs_filename): # process a given fra
             labels, num = label(mask, return_num=True, connectivity=1) # connectivity has to be 1 
             imInput = tile_from_svs(svs_filename,mask,x,y)
             try:
+                regions = regionprops(labels)
+                morphometry = [(n.centroid[1]+float(x),n.centroid[0]+float(y),n.area,n.eccentricity,n.orientation,n.perimeter,n.solidity) for n in regions]
                 regions_R = regionprops(labels,intensity_image=imInput[:,:,0])
                 regions_G = regionprops(labels,intensity_image=imInput[:,:,1])
                 regions_B = regionprops(labels,intensity_image=imInput[:,:,2])
-                morphometry = [(n.centroid[1]+float(x),n.centroid[0]+float(y),n.area,n.eccentricity,n.orientation,n.perimeter,n.solidity) for n in regions_R]
                 intensity_R = [np.sum(n.intensity_image) for n in regions_R]
                 intensity_G = [np.sum(n.intensity_image) for n in regions_G]
                 intensity_B = [np.sum(n.intensity_image) for n in regions_B]
@@ -225,7 +226,30 @@ def process_patch_with_intensity(patch,frac,svs_filename): # process a given fra
             df['intensity_G'] = intensity_G
             df['intensity_B'] = intensity_B
 
-            filename = patch+'.morphometrics+intensity.pkl' # name of the intensity features output file
+            filename = patch+'.pkl' # name of the intensity features output file
+            df.to_pickle(filename)
+    return
+
+def process_patch_wo_intensity(patch,frac): # process a given fraction of nuclei in the patch
+    #print(os.path.basename(patch))
+    patch_name = os.path.basename(patch)
+    features = ['cx','cy','area','eccentricity','orientation','perimeter','solidity']
+    if not pd.read_csv(patch).empty: 
+        x = patch_name.split('_')[0]
+        y = patch_name.split('_')[1]
+        # plt.imshow(imInput)
+        mask = parse_polygons_in_patch(patch,frac)
+        if mask is not None:
+            labels, num = label(mask, return_num=True, connectivity=1) # connectivity has to be 1 
+            try:
+                regions = regionprops(labels)
+                morphometry = [(n.centroid[1]+float(x),n.centroid[0]+float(y),n.area,n.eccentricity,n.orientation,n.perimeter,n.solidity) for n in regions]
+                
+            except ValueError:  #raised if array is empty.
+                pass
+            df = pd.DataFrame(morphometry, columns =['cx','cy','area','eccentricity','orientation','perimeter','solidity'])
+
+            filename = patch+'.pkl' # name of the intensity features output file
             df.to_pickle(filename)
     return
 
@@ -333,7 +357,7 @@ def show_patches_parallel(filename):
         show_patch_from_polygon(filename,x_list,y_list)
     return
 
-def measure_patch_of_polygons(filename,features): 
+def measure_patch_of_polygons(filename,features,outdir): 
     # given the patch filename containing the polygon coordinates, generate morphometrics
     # Polygons are encoded in cartesian coord system (x,y) with the origin at the top-left corner
     # the first 2 integers in the polygon filename give the (x,y) coord of the top-left corner of the patch
@@ -365,9 +389,9 @@ def measure_patch_of_polygons(filename,features):
             regions = regionprops(label_mask, coordinates='rc')       
             if len(regions) > 0:
                 for i in keys:  # loop over features
-                    if i == 'centroid_x':
+                    if i == 'cx':
                         dicts[i] = np.rint(regions[0]['centroid'][1]+mini[1]).astype(int) # x-coord is column
-                    elif i == 'centroid_y':
+                    elif i == 'cy':
                         dicts[i] = np.rint(regions[0]['centroid'][0]+mini[0]).astype(int) # y-coord is row
                     else:
                         dicts[i] = regions[0][i]
@@ -377,7 +401,7 @@ def measure_patch_of_polygons(filename,features):
         # update morphometrics data 
         new_df = pd.DataFrame(dicts, index=[0])
         data = data.append(new_df, ignore_index=True)
-    data.to_pickle(filename+'.morphometrics.pkl')
+    data.to_pickle(outdir+'/'+os.path.basename(filename)+'.morphometrics.connectivity_1.pkl')
     return 
 
 # Plotly contour visualization
@@ -503,6 +527,19 @@ def covd_parallel(node,data):
         return (node,vec,covd_ok,entropy)
     return
 
+def covd_parallel_with_intensity(node,data):
+    mat = data[node,:,:].copy()
+    mat_with_intensity = mat; mat_wo_intensity = mat[:,np.r_[0:7,-1]].copy()
+    C_with_intensity = np.corrcoef(mat_with_intensity,rowvar=False); C_wo_intensity = np.corrcoef(mat_wo_intensity,rowvar=False)
+    try:
+        L_with_intensity = linalg.logm(C_with_intensity); L_wo_intensity = linalg.logm(C_wo_intensity)
+        Lr_with_intensity = np.real_if_close(L_with_intensity); Lr_wo_intensity = np.real_if_close(L_wo_intensity)
+        iu1_with_intensity = np.triu_indices(Lr_with_intensity.shape[1]); iu1_wo_intensity = np.triu_indices(Lr_wo_intensity.shape[1])
+        vec_with_intensity = Lr_with_intensity[iu1_with_intensity]; vec_wo_intensity = Lr_wo_intensity[iu1_wo_intensity]
+        return (node,vec_with_intensity,vec_wo_intensity)
+    except Exception:
+        return (node,None,None)
+  
 def covd_parallel_sparse(node,data,nn_idx):
     mat = data[nn_idx[node,:],:]
     C = np.corrcoef(mat.astype(float),rowvar=False) # compute correlation matrix to account for std

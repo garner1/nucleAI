@@ -20,9 +20,18 @@ import math
 import timeit
 from datetime import datetime
 
-features = ['centroid_x','centroid_y','area','eccentricity','orientation','perimeter','solidity','intensity_image']
+features = ['cx','cy','area','eccentricity','orientation','perimeter','solidity']
 
 patch = sys.argv[1] #~/Work/dataset/tcga_polygons/LUAD/*.gz/*.gz
 
 #print('Calculating the morphometry...')
-measure_patch_of_polygons(patch,features)
+sample = os.path.dirname(patch).split('/')
+tissue = sample[5]
+samplename = sample[6].split('.')[0]
+outdir = '/home/garner1/Work/pipelines/nucleAI/data/features_wo_intensity/'+tissue+'/'+samplename
+try:
+    os.stat(outdir)
+except:
+    os.makedirs(outdir,exist_ok=True)    
+
+measure_patch_of_polygons(patch,features,outdir)

@@ -301,9 +301,9 @@ def scattered3d_tcga(df,filename):
     return
 
 # Return the barycenter of the covd for a given sample
-def load_barycenters(sample):
+def load_barycenters(sample, descriptor_name):
     df = pd.read_pickle(sample)
-    barycenter = df[df['covd']==1]['descriptor'].mean()
+    barycenter = df[descriptor_name].mean()
     return barycenter
 
 # Given the nonzero pixel values show the mask

@@ -47,16 +47,20 @@ import warnings
 warnings.filterwarnings('ignore')
 
 data_dir = sys.argv[1]
-samples = glob.glob('../'+data_dir+'/*.freq10.covdNN50.features.pkl')
+samples = glob.glob(data_dir+'/*/*.freq10.covdNN50.pkl')
 
 #####################################################################################
 # The barycenters array contain the list of covd-barycenters, one per sample
 num_cores = multiprocessing.cpu_count() # numb of cores
-barycenter_list = Parallel(n_jobs=num_cores)(
-    delayed(load_barycenters)(sample) for sample in tqdm(samples) # load_barycenters evaluate the barycenter of the sample
-    )
 
-barycenters = np.zeros((len(samples),pd.read_pickle(samples[0])['descriptor'].iloc[0].shape[0]))
+# Here is where you specify the kind of descriptor 
+descriptor = 'descriptor_woI' # "descriptor_woI" or "descriptor_withI"
+# descriptor = 'descriptor_withI' # "descriptor_woI" or "descriptor_withI"
+
+barycenter_list = Parallel(n_jobs=num_cores)(
+    delayed(load_barycenters)(sample,descriptor) for sample in tqdm(samples) # load_barycenters evaluate the barycenter of the sample
+    )
+barycenters = np.zeros((len(samples),pd.read_pickle(samples[0])[descriptor].iloc[0].shape[0]))
 row = 0
 for b in barycenter_list:
     barycenters[row,:] = b
@@ -65,12 +69,12 @@ barycenters = barycenters[~np.all(barycenters == 0, axis=1)]
 
 sample_id = []
 for sample in samples:
-    sample_id.append( os.path.basename(sample).split('.')[0] )
+    sample_id.append( os.path.dirname(sample).split('/')[-1] )
 
 
 # UMAP representations
 
-reducer = umap.UMAP(n_components=2,min_dist=0)
+reducer = umap.UMAP(n_components=2,min_dist=0,random_state=42) # set random state for reproducibility
 embedding = reducer.fit_transform(barycenters)
 
 x = embedding[:,0]
@@ -80,12 +84,11 @@ df = pd.DataFrame(dict(x=x, y=y, sample=sample_id))
 # Plot
 fig, ax = plt.subplots(figsize=(10,10))
 ax.margins(0.05) # Optional, just adds 5% padding to the autoscaling
-ax.plot(x, y, marker='o', linestyle='', ms=3, alpha=0.75)
-plt.title('UMAP projection of the BRCA dataset', fontsize=12)
-filename = 'umap.'+data_dir+'.pdf'
+ax.plot(x, y, marker='o', linestyle='', ms=3, alpha=0.5)
+plt.title('UMAP projection of the BRCA dataset '+descriptor, fontsize=12)
+filename = 'umap.'+descriptor+'.pdf'
 plt.savefig(filename)
-df.to_pickle(data_dir+'.umap.pkl')
-
+df.to_csv(descriptor+'.umap.csv')
 
 
 

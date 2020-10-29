@@ -86,9 +86,9 @@ fig, ax = plt.subplots(figsize=(10,10))
 ax.margins(0.05) # Optional, just adds 5% padding to the autoscaling
 ax.plot(x, y, marker='o', linestyle='', ms=3, alpha=0.5)
 plt.title('UMAP projection of the BRCA dataset '+descriptor, fontsize=12)
-filename = 'umap.'+descriptor+'.pdf'
+filename = data_dir+'/umap.'+descriptor+'.pdf'
 plt.savefig(filename)
-df.to_csv(descriptor+'.umap.csv')
+df.to_csv(data_dir+'/'+descriptor+'.umap.csv')
 
 
 

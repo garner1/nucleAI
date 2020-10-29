@@ -6,7 +6,7 @@ samplename=`echo $svsSample | cut -d '/' -f7 | cut -d'.' -f1`
 polygons='/media/garner1/hdd2/TCGA_polygons/'$cancer_type'/'$samplename'.*.tar.gz/'$samplename'.*.tar.gz'
 dirSample='/media/garner1/hdd2/TCGA_polygons/'$cancer_type'/'$samplename'.*.tar.gz'
 
-echo ${cancer_type} $samplename 
+echo ${cancer_type} ${samplename}
 
 # if test -d $dirSample; then
 #     echo "Uncompress"
@@ -27,16 +27,16 @@ echo ${cancer_type} $samplename
 # fi
 
 # After the first part has finished run this
-for s in `ls -d data/features/BRCA/TCGA-*`
+for s in `ls -d data/features/${cancer_type}/TCGA-*`
 do
     sample_id=`echo "${s}" | cut -d '/' -f4`
     # If covds data is not present run the script
     # [ -f data/covds/BRCA/${sample_id}/*.pkl ] || ~/anaconda3/bin/ipython py/test.mask2descriptor.py 10 50 ${s}
-    [ -f data/covds/BRCA/${sample_id}/*.pkl ] || /usr/local/share/anaconda3/bin/ipython py/test.mask2descriptor.py 10 50 ${s}
+    [ -f data/covds/${cancer_type}/${sample_id}/*.pkl ] || /usr/local/share/anaconda3/bin/ipython py/test.mask2descriptor.py 10 50 ${s}
 done
 
-#/usr/local/share/anaconda3/bin/ipython py/phase1_step1.mask2descriptor_wo_intensity.py 10 50 data/features_wo_intensity/${cancer_type}/${samplename}
-# for sample in `ls data`; do /usr/local/share/anaconda3/bin/ipython py/phase1_step1.mask2descriptor_with_intensity.py 10 50 data/${sample}; done
+# #/usr/local/share/anaconda3/bin/ipython py/phase1_step1.mask2descriptor_wo_intensity.py 10 50 data/features_wo_intensity/${cancer_type}/${samplename}
+# # for sample in `ls data`; do /usr/local/share/anaconda3/bin/ipython py/phase1_step1.mask2descriptor_with_intensity.py 10 50 data/${sample}; done
 
 
 

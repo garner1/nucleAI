@@ -46,16 +46,17 @@ import plotly
 import warnings
 warnings.filterwarnings('ignore')
 
-data_dir = sys.argv[1]
+data_dir = sys.argv[1] # e.g. /media/garner1/hdd2/covds/BLCA 
+
 samples = glob.glob(data_dir+'/*/*.freq10.covdNN50.pkl')
 
 #####################################################################################
 # The barycenters array contain the list of covd-barycenters, one per sample
 num_cores = multiprocessing.cpu_count() # numb of cores
 
-# Here is where you specify the kind of descriptor 
-descriptor = 'descriptor_woI' # "descriptor_woI" or "descriptor_withI"
-# descriptor = 'descriptor_withI' # "descriptor_woI" or "descriptor_withI"
+# Here is where you specify the kind of descriptor with or without intensities
+#descriptor = 'descriptor_woI' # "descriptor_woI" or "descriptor_withI"
+descriptor = 'descriptor_withI' # "descriptor_woI" or "descriptor_withI"
 
 barycenter_list = Parallel(n_jobs=num_cores)(
     delayed(load_barycenters)(sample,descriptor) for sample in tqdm(samples) # load_barycenters evaluate the barycenter of the sample
@@ -70,7 +71,6 @@ barycenters = barycenters[~np.all(barycenters == 0, axis=1)]
 sample_id = []
 for sample in samples:
     sample_id.append( os.path.dirname(sample).split('/')[-1] )
-
 
 # UMAP representations
 
